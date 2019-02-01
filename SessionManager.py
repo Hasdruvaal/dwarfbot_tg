@@ -28,13 +28,8 @@ class SessionManager:
     # returns sessionId
     def createSession(name, curatorId, chatId):
         curator = User.get(userId=curatorId)
-        query = Session.select().where((Session.curator == curator) &
-                                       (Session.chatId == chatId))
-        if (not query.exists()):
-            session = Session.create(name=name, curator=curator, chatId=chatId)
-            return True
-        else:
-            return False
+        Session.create(name=name, curator=curator, chatId=chatId)
+        return True
 
     #returns bool
     def checkUser(userId):
