@@ -16,7 +16,7 @@ bot = telebot.TeleBot(config.token)
 
 SessionManager.initialise()
 hideBoard = types.ReplyKeyboardRemove()
-
+chosen_sessions = {}
 
 def private(f):
     @wraps(f)
@@ -89,11 +89,29 @@ def create_session(message):
 @authorise
 @logging
 def delete_session(message):
-    ok = SessionManager.deleteSession(message.from_user.id, message.chat.id)
-    if (ok):
-        bot.reply_to(message, "Session successfully deleted")
-    else:
-        bot.reply_to(message, "Failed to delete: you probably don't have any here")
+    user = User.get_by_id(message.from_user.id)
+    sessions = Session.filter(curator=user)
+    session_mapping = {s.sessionId: s.name for s in sessions}
+
+    reply_text = '\n'.join([str(k) + ': ' + v for k, v in session_mapping.items()])
+    reply_text = 'Please chose one\n' + reply_text
+    session_select = types.ReplyKeyboardMarkup(one_time_keyboard=True, row_width=len(sessions))
+    session_select.add(*[str(k) for k in session_mapping.keys()])
+    session_select.add('Cancel')
+    msg = bot.reply_to(message, reply_text, reply_markup=session_select)
+    bot.register_next_step_handler(msg, process_deletion_choose)
+
+
+def process_deletion_choose(message):
+    if message.text == 'Cancel':
+        bot.reply_to(message, 'Okay.jpg', reply_markup=hideBoard)
+        return
+
+    try:
+        Session.delete_by_id(message.text)
+        bot.reply_to(message, 'Successfully deleted.', reply_markup=hideBoard)
+    except Exception:
+        bot.reply_to(message, 'Something gone wrong!', reply_markup=hideBoard)
 
 
 @bot.message_handler(commands=['rename_session'])
@@ -112,9 +130,6 @@ def rename_session(message):
     session_select.add('Cancel')
     msg = bot.reply_to(message, reply_text, reply_markup=session_select)
     bot.register_next_step_handler(msg, process_session_choose)
-
-
-chosen_sessions = {}
 
 
 def process_session_choose(message):
