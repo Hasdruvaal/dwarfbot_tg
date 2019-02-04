@@ -154,5 +154,6 @@ def process_name_typing(m):
         bot.reply_to(m, 'Couldn\'t find any sessions!')
 
 
-print("Starting the bot")
-bot.polling()
+if __name__ == '__main__':
+    print("Starting the bot")
+    bot.polling()
