@@ -73,7 +73,7 @@ def send_greeting(message):
 
 
 @bot.message_handler(commands=['create_session'])
-@group
+@private
 @authorise
 @logging
 def create_session(message):
@@ -85,7 +85,7 @@ def create_session(message):
 
 
 @bot.message_handler(commands=['delete_session'])
-@group
+@private
 @authorise
 @logging
 def delete_session(message):
