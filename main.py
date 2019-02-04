@@ -8,7 +8,7 @@ from logging import debug, info, error
 
 from SessionManager import SessionManager, User, Session
 
-from config.bot import config
+import config.bot as config
 
 try:
     telebot.apihelper.proxy = {'https': config.proxy}
