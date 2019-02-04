@@ -3,10 +3,12 @@ from functools import wraps
 import telebot
 from telebot import types
 
-import log
+import utils.logger
+from logging import debug, info, error
+
 from SessionManager import SessionManager, User, Session
 
-import config
+import config.bot as config
 
 try:
     telebot.apihelper.proxy = {'https': config.proxy}
@@ -55,7 +57,7 @@ def logging(f):
     @wraps(f)
     def decorator(message):
         if (SessionManager.checkUser(message.from_user.id)):
-            log.logi(message, f.__name__)
+            info((message, f.__name__))
             f(message)
         else:
             bot.reply_to(message, "First send '/authorise' to the bot in private")
@@ -154,6 +156,5 @@ def process_name_typing(m):
         bot.reply_to(m, 'Couldn\'t find any sessions!')
 
 
-if __name__ == '__main__':
-    print("Starting the bot")
-    bot.polling()
+info("Starting the bot")
+bot.polling()
