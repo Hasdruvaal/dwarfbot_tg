@@ -1,4 +1,28 @@
-.idea/
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# db
 *.db
 *.sqlite3
-config.py
+
+# Log files
+*.log
+*.cache
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+#PyCharm
+.idea
+.idea/
+
+#Configs
+config/bot.py
