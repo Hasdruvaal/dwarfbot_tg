@@ -1,86 +1,21 @@
-from functools import wraps
-
-import telebot
 from telebot import types
 
-import utils.logger
-from logging import debug, info, error
+from telegram import bot
+from telegram.decorators import *
+from db.models import SessionManager, User, Session
 
-from SessionManager import SessionManager, User, Session
-
-import config.bot as config
-
-try:
-    telebot.apihelper.proxy = {'https': config.proxy}
-except:
-    pass
-bot = telebot.TeleBot(config.token)
-
-SessionManager.initialise()
 hideBoard = types.ReplyKeyboardRemove()
 chosen_sessions = {}
 
-def private(f):
-    @wraps(f)
-    def decorator(message):
-        if (message.chat.type == "private"):
-            f(message)
-        else:
-            bot.reply_to(message, "This command is not supported in groups.")
-
-    return decorator
-
-
-def group(f):
-    @wraps(f)
-    def decorator(message):
-        if (message.chat.type == "group" or message.chat.type == "supergroup"):
-            f(message)
-        else:
-            bot.reply_to(message, "This command is not supported in private.")
-
-    return decorator
-
-
-def authorise(f):
-    @wraps(f)
-    def decorator(message):
-        if (SessionManager.checkUser(message.from_user.id)):
-            f(message)
-        else:
-            bot.reply_to(message, "First send '/authorise' to the bot in private")
-
-    return decorator
-
-
-def logging(f):
-    @wraps(f)
-    def decorator(message):
-        if (SessionManager.checkUser(message.from_user.id)):
-            info((message, f.__name__))
-            f(message)
-        else:
-            bot.reply_to(message, "First send '/authorise' to the bot in private")
-
-    return decorator
-
-
-@bot.message_handler(commands=['authorise'])
-@private
-@logging
-def send_greeting(message):
-    if (message.chat.type == "private"):
-        SessionManager.addUser(message.from_user.id, message.chat.id)
-    bot.reply_to(message, "Greetings! The bot recognised you.")
-
 
 @bot.message_handler(commands=['create_session'])
-@private
+@group
 @authorise
 @logging
 def create_session(message):
-    ok = SessionManager.createSession("Untitled", message.from_user.id, message.chat.id)
-    if (ok):
+    name = ' '.join(message.text.split(maxsplit=1)[1:]) or 'Untitled'
+    ok = SessionManager.createSession(name, message.from_user.id, message.chat.id)
+    if ok:
         bot.reply_to(message, "Session is created")
     else:
         bot.reply_to(message, "Failed to create: there is one already created by you in this chat.")
@@ -95,7 +30,7 @@ def delete_session(message):
     sessions = Session.filter(curator=user)
     session_mapping = {s.sessionId: s.name for s in sessions}
 
-    reply_text = '\n'.join([str(k) + ': ' + v for k, v in session_mapping.items()])
+    reply_text = '\n'.join(str(k) + ': ' + v for k, v in session_mapping.items())
     reply_text = 'Please chose one\n' + reply_text
     session_select = types.ReplyKeyboardMarkup(one_time_keyboard=True, row_width=len(sessions))
     session_select.add(*[str(k) for k in session_mapping.keys()])
@@ -156,6 +91,42 @@ def process_name_typing(m):
         bot.reply_to(m, 'Couldn\'t find any sessions!')
 
 
-if __name__ == '__main__':
-    info("Starting the bot")
-    bot.polling()
+@bot.message_handler(commands=['set_description'])
+@private
+@authorise
+@logging
+def set_description(message):
+    user = User.get_by_id(message.from_user.id)
+    sessions = Session.filter(curator=user)
+    session_mapping = {s.sessionId: s.name for s in sessions}
+
+    reply_text = '\n'.join(str(k) + ': ' + v for k, v in session_mapping.items())
+    reply_text = 'Please chose one\n' + reply_text
+    session_select = types.ReplyKeyboardMarkup(one_time_keyboard=True, row_width=len(sessions))
+    session_select.add(*[str(k) for k in session_mapping.keys()])
+    session_select.add('Cancel')
+    msg = bot.reply_to(message, reply_text, reply_markup=session_select)
+    bot.register_next_step_handler(msg, process_description_choose)
+
+
+def process_description_choose(message):
+    if message.text == 'Cancel':
+        bot.reply_to(message, 'Okay.jpg', reply_markup=hideBoard)
+        return
+    session = Session.get_by_id(message.text)
+    chosen_sessions[message.from_user.id] = session
+
+    msg = bot.reply_to(message, 'Define a description', reply_markup=hideBoard)
+    bot.register_next_step_handler(msg, process_name_typing)
+
+
+def process_description_typing(m):
+    description = m.text
+    session: Session = chosen_sessions.get(m.from_user.id)
+    if session:
+        session.name = description
+        session.save()
+        bot.reply_to(m, 'Success')
+    else:
+        bot.reply_to(m, 'Couldn\'t find any sessions!')
+

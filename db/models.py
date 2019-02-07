@@ -1,14 +1,18 @@
 from peewee import *
 
+
 db = SqliteDatabase("database.db")
+
 
 class BaseModel(Model):
     class Meta:
         database = db
 
+
 class User(BaseModel):
     userId = IntegerField(primary_key=True)
     pmId = IntegerField()
+
 
 class Session(BaseModel):
     sessionId = IntegerField(primary_key=True)
@@ -16,20 +20,25 @@ class Session(BaseModel):
     curator = ForeignKeyField(User)
     chatId = IntegerField()
 
+
 class UserSession(BaseModel):
     user = ForeignKeyField(User)
     session = ForeignKeyField(Session)
 
-class SessionManager:
 
+class SessionManager:
     def initialise():
         db.create_tables([User, Session, UserSession])
 
     # returns sessionId
     def createSession(name, curatorId, chatId):
         curator = User.get(userId=curatorId)
-        Session.create(name=name, curator=curator, chatId=chatId)
-        return True
+        query = Session.select().where((Session.curator == curator) &
+                                       (Session.chatId == chatId))
+        if not query.exists():
+            Session.create(name=name, curator=curator, chatId=chatId)
+            return True
+        return False
 
     #returns bool
     def checkUser(userId):
