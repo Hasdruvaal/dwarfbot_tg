@@ -11,7 +11,7 @@ from SessionManager import SessionManager, User, Session
 import config.bot as config
 
 try:
-    telebot.apihelper.proxy = {'https': config.proxy}
+    telebot.apihelper.proxy = config.proxy
 except:
     pass
 bot = telebot.TeleBot(config.token)
