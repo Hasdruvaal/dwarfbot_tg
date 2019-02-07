@@ -1,6 +1,5 @@
 from peewee import *
 
-
 db = SqliteDatabase("database.db")
 
 
@@ -46,18 +45,17 @@ class SessionManager:
 
     # returns bool
     def addUser(userId, chatId):
-        if (not SessionManager.checkUser(userId)):
-            user = User.create(userId=userId, pmId=chatId)
+        if not SessionManager.checkUser(userId):
+            User.create(userId=userId, pmId=chatId)
             return True
-        else:
-            return False
+        return False
 
     # returns bool
     def deleteSession(curatorId, chatId):
         curator = User.get(userId=curatorId)
         query = Session.select().where((Session.curator == curator) &
                                        (Session.chatId == chatId))
-        if (query.exists()):
+        if query.exists():
             query.get().delete_instance()
             return True
         else:
@@ -78,8 +76,8 @@ class SessionManager:
         query = UserSession.select().where(
             UserSession.session == session &
             UserSession.user == user)
-        if (not query.exists()):
-            entry = UserSession.create(session=session, user=user)
+        if not query.exists():
+            UserSession.create(session=session, user=user)
             return True
         else:
             query.get().delete_instance()
@@ -87,20 +85,20 @@ class SessionManager:
 
     # returns playerId[]
     def shufflePlayers(curatorId, sessionId):
-        return # TODO:
+        return  # TODO:
 
     # returns sessionId[]
     def getChatSessionsList(chatId):
-        return # TODO:
+        return  # TODO:
 
     # returns playerId[]
     def getPlayerSessionsList(playerId):
-        return # TODO:
+        return  # TODO:
 
     # returns Session
     def readSession(sessionId):
-        return # TODO:
+        return  # TODO:
 
     # returns bool
     def writeSession(sessionId):
-        return # TODO:
+        return  # TODO:
