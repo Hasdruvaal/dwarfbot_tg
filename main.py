@@ -3,7 +3,7 @@ from functools import wraps
 import telebot
 from telebot import types
 
-import utils.logger
+import utils.logger # dont delete
 from logging import debug, info, error
 
 from SessionManager import SessionManager, User, Session
@@ -20,48 +20,42 @@ SessionManager.initialise()
 hideBoard = types.ReplyKeyboardRemove()
 chosen_sessions = {}
 
+
 def private(f):
     @wraps(f)
     def decorator(message):
-        if (message.chat.type == "private"):
+        if message.chat.type == "private":
             f(message)
         else:
             bot.reply_to(message, "This command is not supported in groups.")
-
     return decorator
 
 
 def group(f):
     @wraps(f)
     def decorator(message):
-        if (message.chat.type == "group" or message.chat.type == "supergroup"):
+        if message.chat.type == "group" or message.chat.type == "supergroup":
             f(message)
         else:
             bot.reply_to(message, "This command is not supported in private.")
-
     return decorator
 
 
 def authorise(f):
     @wraps(f)
     def decorator(message):
-        if (SessionManager.checkUser(message.from_user.id)):
+        if SessionManager.checkUser(message.from_user.id):
             f(message)
         else:
             bot.reply_to(message, "First send '/authorise' to the bot in private")
-
     return decorator
 
 
 def logging(f):
     @wraps(f)
     def decorator(message):
-        if (SessionManager.checkUser(message.from_user.id)):
-            info((message, f.__name__))
-            f(message)
-        else:
-            bot.reply_to(message, "First send '/authorise' to the bot in private")
-
+        info((message, f.__name__))
+        f(message)
     return decorator
 
 
@@ -69,7 +63,7 @@ def logging(f):
 @private
 @logging
 def send_greeting(message):
-    if (message.chat.type == "private"):
+    if message.chat.type == "private":
         SessionManager.addUser(message.from_user.id, message.chat.id)
     bot.reply_to(message, "Greetings! The bot recognised you.")
 
@@ -80,7 +74,7 @@ def send_greeting(message):
 @logging
 def create_session(message):
     ok = SessionManager.createSession("Untitled", message.from_user.id, message.chat.id)
-    if (ok):
+    if ok:
         bot.reply_to(message, "Session is created")
     else:
         bot.reply_to(message, "Failed to create: there is one already created by you in this chat.")
