@@ -1,14 +1,18 @@
 from peewee import *
 
+
 db = SqliteDatabase("database.db")
+
 
 class BaseModel(Model):
     class Meta:
         database = db
 
+
 class User(BaseModel):
     userId = IntegerField(primary_key=True)
     pmId = IntegerField()
+
 
 class Session(BaseModel):
     sessionId = IntegerField(primary_key=True)
@@ -16,12 +20,13 @@ class Session(BaseModel):
     curator = ForeignKeyField(User)
     chatId = IntegerField()
 
+
 class UserSession(BaseModel):
     user = ForeignKeyField(User)
     session = ForeignKeyField(Session)
 
-class SessionManager:
 
+class SessionManager:
     def initialise():
         db.create_tables([User, Session, UserSession])
 
