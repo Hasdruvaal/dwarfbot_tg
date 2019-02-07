@@ -1,3 +1,9 @@
-from db.models import *
+from peewee import SqliteDatabase, Model
+from config import bot
 
-SessionManager.initialise()
+db = SqliteDatabase(bot.database)
+
+
+class BaseModel(Model):
+    class Meta:
+        database = db
