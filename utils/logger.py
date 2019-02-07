@@ -65,5 +65,3 @@ def init_logging(configFilePath='config/logging.json'):
     else:
         dictConfig(defaultConfig)
 
-
-init_logging()

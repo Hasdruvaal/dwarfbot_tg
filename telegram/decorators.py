@@ -2,7 +2,7 @@ from functools import wraps
 from logging import info
 
 from telegram import bot
-from db import SessionManager
+from db.manager import UserManager
 
 
 def private(f):
@@ -28,7 +28,7 @@ def group(f):
 def authorise(f):
     @wraps(f)
     def decorator(message):
-        if SessionManager.checkUser(message.from_user.id):
+        if UserManager.check_user(message.from_user.id):
             f(message)
         else:
             bot.reply_to(message, "First send '/authorise' to the bot in private")
