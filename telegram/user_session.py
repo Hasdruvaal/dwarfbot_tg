@@ -15,11 +15,11 @@ def toggle_player(message):
                          message.from_user.last_name)
     if session and session.status is None:
         if UserSessionManager.toggle_player(session, message.from_user.id):
-            bot.reply_to(message, 'You was added to session game')
+            bot.reply_to(message, 'You were added to the session game')
         else:
-            bot.reply_to(message, 'You was deleted to session game')
+            bot.reply_to(message, 'You were deleted from the session game')
     else:
-        bot.reply_to(message, 'Failed to toggle you to game: there is no game session.')
+        bot.reply_to(message, 'Failed to toggle you to the game: there is no game session.')
 
 
 @bot.message_handler(commands=['players'])
@@ -33,7 +33,7 @@ def players(message):
     if players:
         bot.reply_to(message, reply_text)
     else:
-        bot.reply_to(message, 'There is no any player')
+        bot.reply_to(message, 'There are no players')
 
 
 @bot.message_handler(commands=['shuffle'])
@@ -44,7 +44,7 @@ def shuffle_player(message):
     if session and UserSessionManager.shuffle_players(message.chat.id, session):
         players(message)
     else:
-        bot.reply_to(message, 'Failed to shuffle: there is nothing to shuffle')
+        bot.reply_to(message, 'Failed to shuffle: there is no one to shuffle')
 
 
 @bot.message_handler(commands=['skip'])
