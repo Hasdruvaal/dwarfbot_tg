@@ -64,7 +64,9 @@ def description(message):
 @private
 @logging
 def start_session(message):
-    session_id = SessionManager.get_session(message.chat.id)
+    session_id = SessionManager.get_chat_session(message.chat.id).sessionId
+    if not session_id:
+        return
     if session_id not in SessionManager.get_player_sessions(message.from_user.id):
         return
 

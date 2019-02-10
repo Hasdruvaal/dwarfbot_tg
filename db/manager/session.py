@@ -1,6 +1,7 @@
+from peewee import fn
+
 from db.models.user import User
 from db.models import Session, UserSession
-
 
 class SessionManager:
     # returns sessionId
@@ -52,13 +53,18 @@ class SessionManager:
             return session.description
         return None
 
-    # returns sessionId
-    def get_session(chat_id):
+    # returns session
+    def get_chat_session(chat_id):
         query = Session.select().where((Session.chatId == chat_id))
         if query.exists():
             session = query.get()
-            return session.sessionId
+            return session
         return None
+
+    # returns session
+    def get_session(session_id):
+        return Session.get_by_id(session_id)
+
 
     # returns sessionId[]
     def get_player_sessions(curator_id):
@@ -66,18 +72,18 @@ class SessionManager:
             .where((Session.curator == curator_id))
         return [session.sessionId for session in sessions]
 
-    # returns sessionId[]
-    def get_session_status(sesion_id):
-        session = Session.get(sesion_id)
-        return session.status
-
     # return bool
-    def start_session(session_id, curator_id):
-        players = UserSession.select().where(UserSession.session == session_id)
-        if players.exists():
-            session = Session.get(session_id)
+    def start_session(session_id):
+        player_session = UserSession.select()\
+            .where(UserSession.session == session_id)\
+            .order_by(UserSession.position.desc())
+        if player_session.exists():
+            session = Session.get_by_id(session_id)
             session.status = True
             session.save()
+            player_session = player_session.get()
+            player_session.status = True
+            player_session.save()
             return True
         return False
 
