@@ -35,6 +35,7 @@ class SessionManager:
         if query.exists():
             session = query.get()
             session.name = name
+            session.save()
             return True
         return False
 
@@ -46,8 +47,24 @@ class SessionManager:
         if query.exists():
             session = query.get()
             session.active = status
+            session.save()
             return True
         return False
+
+    #returns str or none
+    def description(curator_id, chat_id, description):
+        curator = User.get(userId=curator_id)
+        query = Session.select().where((Session.curator == curator) &
+                                       (Session.chatId == chat_id))
+        if query.exists():
+            session = query.get()
+            if description:
+                print('change desc')
+                session.description = description
+                session.save()
+            print('session.desc:', session.description)
+            return session.description
+        return None
 
     # returns playerId[]
     def get_players(session_id):

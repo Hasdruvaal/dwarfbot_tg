@@ -31,7 +31,7 @@ def authorise(f):
         if UserManager.check_user(message.from_user.id):
             f(message)
         else:
-            bot.reply_to(message, "First send '/authorise' to the bot in private")
+            bot.reply_to(message, "First send '/auth' to the bot in private")
     return decorator
 
 
