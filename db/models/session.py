@@ -8,4 +8,5 @@ class Session(BaseModel):
     name = TextField()
     curator = ForeignKeyField(User)
     chatId = IntegerField()
+    active = BooleanField(null=True)
 

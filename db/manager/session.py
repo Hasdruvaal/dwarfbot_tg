@@ -20,21 +20,21 @@ class SessionManager:
     def delete_session(curator_id, chat_id):
         curator = User.get(userId=curator_id)
         query = Session.select().where((Session.curator == curator) &
-                                       (Session.chatId == chat_id))
+                                       (Session.chatId == chat_id) &
+                                       (Session.active.is_null()))
         if query.exists():
             query.get().delete_instance()
             return True
         return False
 
     # returns bool
-    def stop_session(curator_id, chat_id):
+    def change_status_session(curator_id, chat_id, status=False):
         curator = User.get(userId=curator_id)
         query = Session.select().where((Session.curator == curator) &
-                                       (Session.chatId == chat_id) &
-                                       Session.active)
+                                       (Session.chatId == chat_id))
         if query.exists():
             session = query.get()
-            session.active = False
+            session.active = status
             return True
         return False
 
