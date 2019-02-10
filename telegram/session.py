@@ -12,7 +12,7 @@ def create_session(message):
     if SessionManager.create_session(name, message.from_user.id, message.chat.id):
         bot.reply_to(message, "Session is created")
     else:
-        bot.reply_to(message, "Failed to create: there is one already created by you in this chat.")
+        bot.reply_to(message, "Failed to create: there is a session already created by you in this chat.")
 
 
 @bot.message_handler(commands=['delete'])
@@ -23,7 +23,7 @@ def delete_session(message):
     if SessionManager.delete_session(message.from_user.id, message.chat.id):
         bot.reply_to(message, "Session is deleted")
     else:
-        bot.reply_to(message, "Failed to delete: there is no sessions created by you in this chat.")
+        bot.reply_to(message, "Failed to delete: there are no sessions created by you in this chat.")
 
 
 @bot.message_handler(commands=['name'])
@@ -73,4 +73,4 @@ def start_session(message):
     if SessionManager.start_session(session_id):
         bot.reply_to(message, 'Strike the earth!')
     else:
-        bot.reply_to(message, 'You are not prepared to journey!')
+        bot.reply_to(message, 'You are not prepared for a journey!')
