@@ -10,7 +10,7 @@ from db.manager import SessionManager
 def create_session(message):
     name = ' '.join(message.text.split(maxsplit=1)[1:]).strip() or 'Untitled'
     if SessionManager.create_session(name, message.from_user.id, message.chat.id):
-        bot.reply_to(message, "Session is created")
+        bot.reply_to(message, "Session created")
     else:
         bot.reply_to(message, "Failed to create: there is a session already created by you in this chat.")
 
@@ -21,7 +21,7 @@ def create_session(message):
 @logging
 def delete_session(message):
     if SessionManager.delete_session(message.from_user.id, message.chat.id):
-        bot.reply_to(message, "Session is deleted")
+        bot.reply_to(message, "Session deleted")
     else:
         bot.reply_to(message, "Failed to delete: there are no sessions created by you in this chat.")
 
