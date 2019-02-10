@@ -1,5 +1,6 @@
+from telegram import bot
 from telegram.decorators import *
-from db.manager import UserSessionManager, SessionManager
+from db.manager import UserSessionManager, SessionManager, UserManager
 
 
 @bot.message_handler(commands=['toggle'])
@@ -7,6 +8,12 @@ from db.manager import UserSessionManager, SessionManager
 @logging
 def toggle_player(message):
     session = SessionManager.get_session(message.chat.id)
+    UserManager.add_user(message.from_user.id,
+                         message.chat.id,
+                         message.from_user.username,
+                         message.from_user.first_name,
+                         message.from_user.last_name
+                         )
     if session:
         if UserSessionManager.toggle_player(session, message.from_user.id):
             bot.reply_to(message, 'You was added to session game')
@@ -35,8 +42,23 @@ def players(message):
 @logging
 def shuffle_player(message):
     session = SessionManager.get_session(message.chat.id)
-    if UserSessionManager.shuffle_players(message.chat.id, session):
+    if session and UserSessionManager.shuffle_players(message.chat.id, session):
         players(message)
     else:
         bot.reply_to(message, 'Failed to shuffle: there is nothing to shuffle')
+
+
+@bot.message_handler(commands=['skip'])
+@private  # TODO: change to group - private is for test only
+@authorise
+@logging
+def skip_player(message):
+    return # TODO: delete current player from UserSession, and set active to the next
+
+@bot.message_handler(commands=['round'])
+@private  # TODO: change to group - private is for test only
+@authorise
+@logging
+def close_round(message):
+    return # TODO: at last player create change
 

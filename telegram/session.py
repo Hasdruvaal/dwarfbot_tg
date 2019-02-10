@@ -1,11 +1,6 @@
-from telebot import types
-
 from telegram import bot
 from telegram.decorators import *
 from db.manager import SessionManager
-
-hideBoard = types.ReplyKeyboardRemove()
-chosen_sessions = {}
 
 
 @bot.message_handler(commands=['create'])
@@ -36,17 +31,19 @@ def delete_session(message):
 @private
 @logging
 def rename_session(message):
-    name = ' '.join(message.text.split(maxsplit=1)[1:]).strip()
-    if not name:
-        return
-    if SessionManager.rename_session(name, message.from_user.id, message.chat.id):
-        bot.reply_to(message, 'Session was renamed!')
+    new_name = ' '.join(message.text.split(maxsplit=1)[1:]).strip()
+    name = SessionManager.rename_session(message.from_user.id, message.chat.id, new_name)
+    if name and not new_name:
+        bot.reply_to(message, 'Session name: '+name)
+    elif name and new_name:
+        bot.reply_to(message, 'Session name changed!')
+    elif new_name and not name:
+        bot.reply_to(message, 'Failed to change name: there is no session created by you in this chat.')
     else:
-        bot.reply_to(message, 'Failed to rename: there is no session created by you in this chat.')
+        bot.reply_to(message, 'There is nothing to show')
 
 
 @bot.message_handler(commands=['description'])
-@authorise
 @private
 @logging
 def description(message):
@@ -54,7 +51,24 @@ def description(message):
     desc = SessionManager.description(message.from_user.id, message.chat.id, new_desc)
     if desc and not new_desc:
         bot.reply_to(message, 'Session description: '+desc)
-    if desc and new_desc:
+    elif desc and new_desc:
         bot.reply_to(message, 'Session description changed!')
     elif new_desc and not desc:
         bot.reply_to(message, 'Failed to change description: there is no session created by you in this chat.')
+    else:
+        bot.reply_to(message, 'There is nothing to show')
+
+
+@bot.message_handler(commands=['embark'])
+@authorise
+@private
+@logging
+def start_session(message):
+    session_id = SessionManager.get_session(message.chat.id)
+    if session_id not in SessionManager.get_player_sessions(message.from_user.id):
+        return
+
+    if SessionManager.start_session(session_id):
+        bot.reply_to(message, 'Strike the earth!')
+    else:
+        bot.reply_to(message, 'You are not prepared to journey!')
