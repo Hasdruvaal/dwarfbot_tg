@@ -1,9 +1,7 @@
+from peewee import fn
+
 from db.models.user import User
-from db.models.session import Session
-from db.models.user_session import UserSession
-
-from db.manager.user import UserManager
-
+from db.models import Session, UserSession
 
 class SessionManager:
     # returns sessionId
@@ -20,57 +18,74 @@ class SessionManager:
     def delete_session(curator_id, chat_id):
         curator = User.get(userId=curator_id)
         query = Session.select().where((Session.curator == curator) &
-                                       (Session.chatId == chat_id))
+                                       (Session.chatId == chat_id) &
+                                       (Session.status.is_null()))
         if query.exists():
             query.get().delete_instance()
             return True
         return False
 
-    # returns bool
-    def stop_session(curator_id, chat_id):
-        curator = User.get(userId=curator_id)
-        query = Session.select().where((Session.curator == curator) &
-                                       (Session.chatId == chat_id) &
-                                       Session.active)
+    # returns str or none
+    def rename_session(curator_id, chat_id, name):
+        curator = User.get_or_none(userId=curator_id)
+        query = Session.select().where((Session.chatId == chat_id)
+                                       & (Session.status.is_null()
+                                          | Session.status))
         if query.exists():
             session = query.get()
-            session.active = False
-            return True
-        return False
+            if name and session.curator == curator:
+                session.name = name
+                session.save()
+            return session.name
+        return None
 
-    # returns playerId[]
-    def get_players(session_id):
-        session = Session.get(sessionId=session_id)
-        players = UserSession.select().where(UserSession.session == session).get()
-        playerIds = list(map(lambda x: x.userId, players))
-        return playerIds
+    # returns str or none
+    def description(curator_id, chat_id, description):
+        curator = User.get_or_none(userId=curator_id)
+        query = Session.select().where((Session.chatId == chat_id)
+                                       & (Session.status.is_null()
+                                          | Session.status))
+        if query.exists():
+            session = query.get()
+            if description and session.curator == curator:
+                session.description = description
+                session.save()
+            return session.description
+        return None
 
-    # returns bool
-    def toggle_player(session_id, user_id):
-        assert UserManager.check_user(user_id)
-        session = Session.get(sessionId=session_id)
-        user = User.get(userId=user_id)
-        query = UserSession.select().where(
-            UserSession.session == session &
-            UserSession.user == user)
-        if not query.exists():
-            UserSession.create(session=session, user=user)
-            return True
-        else:
-            query.get().delete_instance()
-            return False
+    # returns session
+    def get_chat_session(chat_id):
+        query = Session.select().where((Session.chatId == chat_id))
+        if query.exists():
+            session = query.get()
+            return session
+        return None
 
-    # returns playerId[]
-    def shuffle_players(curator_id, session_id):
-        return  # TODO:
+    # returns session
+    def get_session(session_id):
+        return Session.get_by_id(session_id)
+
 
     # returns sessionId[]
-    def get_chat_sessions(chat_id):
-        return  # TODO:
+    def get_player_sessions(curator_id):
+        sessions = Session.select()\
+            .where((Session.curator == curator_id))
+        return [session.sessionId for session in sessions]
 
-    # returns playerId[]
-    def get_player_sessions(player_id):
-        return  # TODO:
+    # return bool
+    def start_session(session_id):
+        player_session = UserSession.select()\
+            .where(UserSession.session == session_id)\
+            .order_by(UserSession.position.desc())
+        if player_session.exists():
+            session = Session.get_by_id(session_id)
+            session.status = True
+            session.save()
+            player_session = player_session.get()
+            player_session.status = True
+            player_session.save()
+            return True
+        return False
 
     # returns Session
     def read_session(session_id):

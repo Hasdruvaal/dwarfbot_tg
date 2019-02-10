@@ -1,7 +1,7 @@
 from peewee import SqliteDatabase, Model
-from config import bot
+from config import telegram
 
-db = SqliteDatabase(bot.database)
+db = SqliteDatabase(telegram.database)
 
 
 class BaseModel(Model):

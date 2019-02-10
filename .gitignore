@@ -25,4 +25,4 @@ venv.bak/
 .idea/
 
 #Configs
-config/bot.py
+config/telegram.py

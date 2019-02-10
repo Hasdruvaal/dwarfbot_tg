@@ -1,92 +1,76 @@
-from telebot import types
-
 from telegram import bot
 from telegram.decorators import *
 from db.manager import SessionManager
-from db.models import User, Session
-
-hideBoard = types.ReplyKeyboardRemove()
-chosen_sessions = {}
 
 
-@bot.message_handler(commands=['create_session'])
-@private
+@bot.message_handler(commands=['create'])
+@private # TODO: change to group, private for test only
 @authorise
 @logging
 def create_session(message):
-    name = ' '.join(message.text.split(maxsplit=1)[1:]) or 'Untitled'
-    ok = SessionManager.create_session(name, message.from_user.id, message.chat.id)
-    if ok:
+    name = ' '.join(message.text.split(maxsplit=1)[1:]).strip() or 'Untitled'
+    if SessionManager.create_session(name, message.from_user.id, message.chat.id):
         bot.reply_to(message, "Session is created")
     else:
         bot.reply_to(message, "Failed to create: there is one already created by you in this chat.")
 
 
-@bot.message_handler(commands=['delete_session'])
+@bot.message_handler(commands=['delete'])
 @private
 @authorise
 @logging
 def delete_session(message):
-    user = User.get_by_id(message.from_user.id)
-    sessions = Session.filter(curator=user)
-    session_mapping = {s.sessionId: s.name for s in sessions}
-
-    reply_text = '\n'.join(str(k) + ': ' + v for k, v in session_mapping.items())
-    reply_text = 'Please chose one\n' + reply_text
-    session_select = types.ReplyKeyboardMarkup(one_time_keyboard=True, row_width=len(sessions))
-    session_select.add(*[str(k) for k in session_mapping.keys()])
-    session_select.add('Cancel')
-    msg = bot.reply_to(message, reply_text, reply_markup=session_select)
-    bot.register_next_step_handler(msg, process_deletion_choose)
+    if SessionManager.delete_session(message.from_user.id, message.chat.id):
+        bot.reply_to(message, "Session is deleted")
+    else:
+        bot.reply_to(message, "Failed to delete: there is no sessions created by you in this chat.")
 
 
-def process_deletion_choose(message):
-    if message.text == 'Cancel':
-        bot.reply_to(message, 'Okay.jpg', reply_markup=hideBoard)
-        return
-
-    try:
-        Session.delete_by_id(message.text)
-        bot.reply_to(message, 'Successfully deleted.', reply_markup=hideBoard)
-    except Exception:
-        bot.reply_to(message, 'Something gone wrong!', reply_markup=hideBoard)
-
-
-@bot.message_handler(commands=['rename_session'])
+@bot.message_handler(commands=['name'])
 @authorise
 @private
 @logging
 def rename_session(message):
-    user = User.get_by_id(message.from_user.id)
-    sessions = Session.filter(curator=user)
-    session_mapping = {s.sessionId: s.name for s in sessions}
-
-    reply_text = '\n'.join([str(k) + ': ' + v for k, v in session_mapping.items()])
-    reply_text = 'Please chose one\n' + reply_text
-    session_select = types.ReplyKeyboardMarkup(one_time_keyboard=True, row_width=len(sessions))
-    session_select.add(*[str(k) for k in session_mapping.keys()])
-    session_select.add('Cancel')
-    msg = bot.reply_to(message, reply_text, reply_markup=session_select)
-    bot.register_next_step_handler(msg, process_session_choose)
-
-
-def process_session_choose(message):
-    if message.text == 'Cancel':
-        bot.reply_to(message, 'Okay.jpg', reply_markup=hideBoard)
-        return
-    session = Session.get_by_id(message.text)
-    chosen_sessions[message.from_user.id] = session
-
-    msg = bot.reply_to(message, 'Define a new name', reply_markup=hideBoard)
-    bot.register_next_step_handler(msg, process_name_typing)
-
-
-def process_name_typing(m):
-    name = m.text
-    session: Session = chosen_sessions.get(m.from_user.id)
-    if session:
-        session.name = name
-        session.save()
-        bot.reply_to(m, 'Success')
+    new_name = ' '.join(message.text.split(maxsplit=1)[1:]).strip()
+    name = SessionManager.rename_session(message.from_user.id, message.chat.id, new_name)
+    if name and not new_name:
+        bot.reply_to(message, 'Session name: '+name)
+    elif name and new_name:
+        bot.reply_to(message, 'Session name changed!')
+    elif new_name and not name:
+        bot.reply_to(message, 'Failed to change name: there is no session created by you in this chat.')
     else:
-        bot.reply_to(m, 'Couldn\'t find any sessions!')
+        bot.reply_to(message, 'There is nothing to show')
+
+
+@bot.message_handler(commands=['description'])
+@private
+@logging
+def description(message):
+    new_desc = ' '.join(message.text.split(maxsplit=1)[1:]).strip() or None
+    desc = SessionManager.description(message.from_user.id, message.chat.id, new_desc)
+    if desc and not new_desc:
+        bot.reply_to(message, 'Session description: '+desc)
+    elif desc and new_desc:
+        bot.reply_to(message, 'Session description changed!')
+    elif new_desc and not desc:
+        bot.reply_to(message, 'Failed to change description: there is no session created by you in this chat.')
+    else:
+        bot.reply_to(message, 'There is nothing to show')
+
+
+@bot.message_handler(commands=['embark'])
+@authorise
+@private
+@logging
+def start_session(message):
+    session_id = SessionManager.get_chat_session(message.chat.id).sessionId
+    if not session_id:
+        return
+    if session_id not in SessionManager.get_player_sessions(message.from_user.id):
+        return
+
+    if SessionManager.start_session(session_id):
+        bot.reply_to(message, 'Strike the earth!')
+    else:
+        bot.reply_to(message, 'You are not prepared to journey!')
