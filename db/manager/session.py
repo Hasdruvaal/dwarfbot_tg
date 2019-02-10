@@ -1,8 +1,5 @@
 from db.models.user import User
 from db.models.session import Session
-from db.models.user_session import UserSession
-
-from db.manager.user import UserManager
 
 
 class SessionManager:
@@ -59,46 +56,24 @@ class SessionManager:
         if query.exists():
             session = query.get()
             if description:
-                print('change desc')
                 session.description = description
                 session.save()
-            print('session.desc:', session.description)
             return session.description
         return None
 
-    # returns playerId[]
-    def get_players(session_id):
-        session = Session.get(sessionId=session_id)
-        players = UserSession.select().where(UserSession.session == session).get()
-        player_ids = list(map(lambda x: x.userId, players))
-        return player_ids
-
-    # returns bool
-    def toggle_player(session_id, user_id):
-        assert UserManager.check_user(user_id)
-        session = Session.get(sessionId=session_id)
-        user = User.get(userId=user_id)
-        query = UserSession.select().where(
-            UserSession.session == session &
-            UserSession.user == user)
-        if not query.exists():
-            UserSession.create(session=session, user=user)
-            return True
-        else:
-            query.get().delete_instance()
-            return False
-
-    # returns playerId[]
-    def shuffle_players(curator_id, session_id):
-        return  # TODO:
+    # returns sessionId
+    def get_session(chat_id):
+        query = Session.select().where((Session.chatId == chat_id))
+        if query.exists():
+            session = query.get()
+            return session.sessionId
+        return None
 
     # returns sessionId[]
-    def get_chat_sessions(chat_id):
-        return  # TODO:
-
-    # returns playerId[]
-    def get_player_sessions(player_id):
-        return  # TODO:
+    def get_player_sessions(curator_id):
+        sessions = Session.select()\
+            .where((Session.curator == curator_id))
+        return [session.sessionId for session in sessions]
 
     # returns Session
     def read_session(session_id):

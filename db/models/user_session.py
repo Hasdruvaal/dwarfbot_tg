@@ -7,4 +7,4 @@ from db.models.session import Session
 class UserSession(BaseModel):
     user = ForeignKeyField(User)
     session = ForeignKeyField(Session)
-    position = IntegerField()
+    position = IntegerField(primary_key=False)
