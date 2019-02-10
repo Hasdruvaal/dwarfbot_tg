@@ -45,4 +45,4 @@ def process_get_file(message):
     file = requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(api_token, file_info.file_path))
     SaveManager.write_save(file.content, user_session)
     UserSessionManager.step(user_session)
-    bot.reply_to(message, 'You turn is end, thank you!')
+    bot.reply_to(message, 'Your turn came to an end!')
