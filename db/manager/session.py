@@ -28,6 +28,17 @@ class SessionManager:
         return False
 
     # returns bool
+    def rename_session(name, curator_id, chat_id):
+        curator = User.get(userId=curator_id)
+        query = Session.select().where((Session.curator == curator) &
+                                       (Session.chatId == chat_id))
+        if query.exists():
+            session = query.get()
+            session.name = name
+            return True
+        return False
+
+    # returns bool
     def change_status_session(curator_id, chat_id, status=False):
         curator = User.get(userId=curator_id)
         query = Session.select().where((Session.curator == curator) &
@@ -42,8 +53,8 @@ class SessionManager:
     def get_players(session_id):
         session = Session.get(sessionId=session_id)
         players = UserSession.select().where(UserSession.session == session).get()
-        playerIds = list(map(lambda x: x.userId, players))
-        return playerIds
+        player_ids = list(map(lambda x: x.userId, players))
+        return player_ids
 
     # returns bool
     def toggle_player(session_id, user_id):
