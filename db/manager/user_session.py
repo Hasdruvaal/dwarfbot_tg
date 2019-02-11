@@ -1,4 +1,4 @@
-from peewee import fn
+import datetime
 import random
 
 from db.manager import SessionManager
@@ -14,7 +14,12 @@ class UserSessionManager:
                            .select() \
                            .where(UserSession.session == session_id) \
                            .order_by(UserSession.position.desc()) \
-                           .limit(1).get().position
+                           .limit(1)
+            if position.exists():
+                position = position.get().position
+            else:
+                position = 0
+
             UserSession.create(session=session_id, user=user_id, position=position+1)
             return True
         else:
@@ -49,7 +54,18 @@ class UserSessionManager:
 
     def current_user_session(session_id):
         query = UserSession.select().where((UserSession.session == session_id)
-                                                  & UserSession.status)
+                                           & UserSession.status)
+        if query.exists():
+            return query.get()
+        return None
+
+    def next_user_session(session_id):
+        cur = UserSessionManager.current_user_session(session_id)
+        if not cur:
+            return None
+
+        query = UserSession.select().where((UserSession.session == session_id)
+                                          & (UserSession.position == cur.position+1))
         if query.exists():
             return query.get()
         return None
@@ -69,20 +85,17 @@ class UserSessionManager:
         return UserSession.get_by_id(user_session_id)
 
     def step(session_id):
-        user_session = UserSessionManager.current_user_session(session_id)
-        if user_session:
-            user_session.status = False
-            user_session.save()
+        current_user_session = UserSessionManager.current_user_session(session_id)
+        next_user_session = UserSessionManager.next_user_session(session_id)
+        if current_user_session:
+            current_user_session.status = False
+            current_user_session.save()
         else:
-            return False
-
-        user_session = UserSession.select().where((UserSession.session == session_id)
-                                                  & (UserSession.position == user_session.position+1))
-        if user_session.exists():
-            user_session = user_session.get()
-            user_session.status = True
-            user_session.save()
-        return True
+            return None, None
+        if next_user_session:
+            next_user_session.status = True
+            next_user_session.save()
+        return current_user_session, next_user_session
 
     def round(session_id, shuffle=False):
         round_user_sessions = []
@@ -100,3 +113,35 @@ class UserSessionManager:
                                              force_add = True):
                 return False
         return True
+
+    def check_save(user_session_id):
+        return UserSession.select().where((UserSession.session == user_session_id)
+                                                 & (UserSession.game)).exists()
+
+    def write_save(file, user_session_id):
+        if not UserSessionManager.check_save(user_session_id):
+            user_session = UserSessionManager.get_by_id(user_session_id)
+            user_session.game = file
+            user_session.save()
+            return user_session.game
+        else:
+            return None
+
+    def get_perv_save(user_session_id):
+        if not UserSessionManager.check_save(user_session_id):
+            user_session = UserSessionManager.get_by_id(user_session_id)
+            prev_session = UserSession.select().where((UserSession.session == user_session.session)
+                                                      & (UserSession.position == user_session.position-1))
+            return prev_session.get() if prev_session.exists() else None
+
+    def write_perv(user_session_id):
+        prev_session = UserSessionManager.get_perv_save(user_session_id)
+        if prev_session:
+            return UserSessionManager.write_save(prev_session.game, user_session_id)
+        return False
+
+    def sleepers():
+        query = UserSession.select().where(UserSession.status
+                                           & datetime.datetime.now() >= UserSession.date_to)
+        if query.exists():
+            return query

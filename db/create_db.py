@@ -1,6 +1,6 @@
 from db import db
-from db.models import User, Session, UserSession, Save
+from db.models import User, Session, UserSession
 
 
 def init_db():
-    db.create_tables([User, Session, UserSession, Save])
+    db.create_tables([User, Session, UserSession])

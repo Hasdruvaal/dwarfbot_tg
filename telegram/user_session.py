@@ -1,3 +1,5 @@
+import os
+
 from telegram import bot
 from telegram.decorators import *
 from db.manager import UserSessionManager, SessionManager, UserManager
@@ -59,13 +61,24 @@ def shuffle_player(message):
 @group
 @authorise
 @logging
-def skip_player(message):
+def skip_player(message, text=None):
     session = SessionManager.get_chat_session(message.chat.id)
     if not session:
         return
     if session.id in SessionManager.get_player_sessions(message.from_user.id):
-        if UserSessionManager.step(session):
+        old, new = UserSessionManager.step(session)
+        if new:
             bot.reply_to(message, 'Current player is skipped!')
+            bot.send_message(old.user, 'Sorry! But your step was skipped by curator' if not text else text)
+            if UserSessionManager.write_perv(old):
+                file_name = old.game_name()
+                with open(file_name, 'wb') as f:
+                    f.write(old.game)
+                bot.send_document(new.user, open(file_name, 'rb'), caption='Your turn!')
+                # there is a problem telebot sends file without extension
+                # i haven't any idea how to fix that
+                os.remove(file_name)
+
 
 @bot.message_handler(commands=['add'])
 @group
@@ -88,6 +101,7 @@ def add_player(message):
                 bot.reply_to(message, 'Something went wrong')
         else:
             bot.reply_to(message, 'You must reply to the user message for add that user!')
+
 
 @bot.message_handler(commands=['round'])
 @authorise
