@@ -3,3 +3,4 @@ proxy = {
     'http': 'http://user:password@ip:port'
 }
 token = 'yourBotToken'
+database = 'database.db'

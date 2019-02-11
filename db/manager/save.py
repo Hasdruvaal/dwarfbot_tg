@@ -9,10 +9,10 @@ class SaveManager:
     def write_save(file, user_session_id):
         if not SaveManager.check_save(user_session_id):
             Save.create(data=file,
-                        user_session_id=user_session_id)
+                        user_session=user_session_id)
             UserSessionManager.step(UserSessionManager.get_by_id(user_session_id).session_id)
         else:
-            return False
+            return None
 
     def get_save(user_session_id):
         save = Save.select().where(Save.user_session == user_session_id).get()

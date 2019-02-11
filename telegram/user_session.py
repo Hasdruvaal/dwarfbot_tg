@@ -4,7 +4,7 @@ from db.manager import UserSessionManager, SessionManager, UserManager
 
 
 @bot.message_handler(commands=['toggle'])
-@private  # TODO: change to group - private is for test only
+@group
 @logging
 def toggle_player(message):
     session = SessionManager.get_chat_session(message.chat.id)
@@ -23,13 +23,16 @@ def toggle_player(message):
 
 
 @bot.message_handler(commands=['players'])
-@private  # TODO: change to group - private is for test only
+@group
 @logging
 def players(message):
     session = SessionManager.get_chat_session(message.chat.id)
-    players = UserSessionManager.get_players(session)
-    reply_text = '\n'.join(str(k) + ': ' + v for k, v in players.items())
+    players, cur = UserSessionManager.get_players(session)
+    reply_text = '\n'.join(str(k) + ': ' + v.get_name() for k, v in players.items())
     reply_text = 'Players list:\n' + reply_text
+    if cur:
+        reply_text += '\nCurrent player: @'+cur.user.get_name() + \
+                      '\nCurrent step: '+str(cur.position)
     if players:
         bot.reply_to(message, reply_text)
     else:
@@ -37,10 +40,15 @@ def players(message):
 
 
 @bot.message_handler(commands=['shuffle'])
-@private  # TODO: change to group - private is for test only
+@group
 @logging
 def shuffle_player(message):
     session = SessionManager.get_chat_session(message.chat.id)
+    if not session:
+        return
+    if session.id not in SessionManager.get_player_sessions(message.from_user.id):
+        return
+
     if session and UserSessionManager.shuffle_players(message.chat.id, session):
         players(message)
     else:
@@ -48,22 +56,52 @@ def shuffle_player(message):
 
 
 @bot.message_handler(commands=['skip'])
-@private  # TODO: change to group - private is for test only
+@group
 @authorise
 @logging
 def skip_player(message):
     session = SessionManager.get_chat_session(message.chat.id)
     if not session:
         return
-    if session.sessionId in SessionManager.get_player_sessions(message.chat.id):
+    if session.id in SessionManager.get_player_sessions(message.from_user.id):
         if UserSessionManager.step(session):
             bot.reply_to(message, 'Current player is skipped!')
 
-
-@bot.message_handler(commands=['round'])
-@private  # TODO: change to group - private is for test only
+@bot.message_handler(commands=['add'])
+@group
 @authorise
 @logging
-def close_round(message):
-    return # TODO: at last player create change
+def add_player(message):
+    session = SessionManager.get_chat_session(message.chat.id)
+    if not session:
+        return
 
+    if session.id in SessionManager.get_player_sessions(message.from_user.id):
+        if message.reply_to_message:
+            if not UserManager.check_user(message.reply_to_message.from_user.id):
+                bot.reply_to(message, 'Player must auth!')
+            if UserSessionManager.toggle_player(user_id=message.reply_to_message.from_user.id,
+                                             session_id=session,
+                                             force_add=True):
+                bot.reply_to(message, 'Player was added!')
+            else:
+                bot.reply_to(message, 'Something went wrong')
+        else:
+            bot.reply_to(message, 'You must reply to the user message for add that user!')
+
+@bot.message_handler(commands=['round'])
+@authorise
+@group
+@logging
+def round(message):
+    shuffle = ' '.join(message.text.split(maxsplit=1)[1:]).strip() or 'False'
+    session = SessionManager.get_chat_session(message.chat.id)
+    if not session:
+        return
+    if session.id not in SessionManager.get_player_sessions(message.from_user.id):
+        return
+
+    if UserSessionManager.round(session.id):
+        bot.reply_to(message, 'Round was added')
+    else:
+        bot.reply_to(message, 'Cant make round')

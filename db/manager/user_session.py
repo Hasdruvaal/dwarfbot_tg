@@ -6,34 +6,34 @@ from db.models import UserSession
 
 
 class UserSessionManager:
-    # returns bool
-    def toggle_player(session_id, user_id):
+    def toggle_player(session_id, user_id, force_add=False):
         query = UserSession.select().where((UserSession.session == session_id) &
                                            (UserSession.user == user_id))
-        if not query.exists():
+        if not query.exists() or force_add:
             position = UserSession \
-                           .select(fn.Max(UserSession.position)) \
+                           .select() \
                            .where(UserSession.session == session_id) \
-                           .limit(1).get().position or 1
-
-            UserSession.create(session=session_id, user=user_id, position=position)
+                           .order_by(UserSession.position.desc()) \
+                           .limit(1).get().position
+            UserSession.create(session=session_id, user=user_id, position=position+1)
             return True
         else:
             query.get().delete_instance()
             return False
 
-    # returns playerId[]
     def get_players(session_id):
         players = UserSession.select()\
             .where(UserSession.session == session_id)\
             .order_by(UserSession.position)
-        return {p.position: p.user.get_name() for p in players}
+        current_player = players.filter(UserSession.status)
+        current_player = None if not current_player.exists() else current_player.get()
 
-    # returns bool
+        return {p.position: p.user for p in players}, current_player
+
     def shuffle_players(curator_id, session):
-        sessions = SessionManager.get_player_sessions(curator_id)
+        user_sessions = SessionManager.get_player_sessions(curator_id)
         session_status = SessionManager.get_session(session).status
-        if session.sessionId not in sessions or session_status is not None:
+        if session.id not in user_sessions or session_status is not None:
             return None
         query = UserSession.select().where((UserSession.session == session))
         if query.exists():
@@ -47,22 +47,19 @@ class UserSessionManager:
             return True
         return None
 
-    # return playerId
     def current_user_session(session_id):
-        user_session = UserSession.select().where((UserSession.session == session_id)
+        query = UserSession.select().where((UserSession.session == session_id)
                                                   & UserSession.status)
-        if user_session.exists():
-            return user_session.get()
+        if query.exists():
+            return query.get()
         return None
 
-    # return status
     def toggle_status(id):
         user_session = UserSession.get_by_id(id)
         user_session.status = not user_session.status
         user_session.save()
         return user_session.status
 
-    # return session{id:name}
     def get_active_sessions(player_id):
         sessions = UserSession.select().where((UserSession.user == player_id)
                                               & UserSession.status)
@@ -79,10 +76,27 @@ class UserSessionManager:
         else:
             return False
 
-        user_session = UserSession.select().where((UserSession.session_id == session_id)
+        user_session = UserSession.select().where((UserSession.session == session_id)
                                                   & (UserSession.position == user_session.position+1))
         if user_session.exists():
             user_session = user_session.get()
             user_session.status = True
             user_session.save()
+        return True
+
+    def round(session_id, shuffle=False):
+        round_user_sessions = []
+        player_list, cur = UserSessionManager.get_players(session_id)
+        if not player_list:
+            return False
+
+        for k, user_session in player_list.items():
+            round_user_sessions.append(user_session)
+        if shuffle:
+            random.shuffle(round_user_sessions)
+        for user_session in round_user_sessions:
+            if not UserSessionManager.toggle_player(session_id = session_id,
+                                             user_id = user_session.user,
+                                             force_add = True):
+                return False
         return True

@@ -4,10 +4,9 @@ from db.models.user import User
 
 
 class Session(BaseModel):
-    sessionId = IntegerField(primary_key=True)
+    id = IntegerField(primary_key=True)
     name = TextField()
     curator = ForeignKeyField(User)
-    chatId = IntegerField()
+    chat = IntegerField()
     status = BooleanField(null=True)
     description = TextField(null=True)
-
