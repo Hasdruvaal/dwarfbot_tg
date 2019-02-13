@@ -1,5 +1,8 @@
 import mimetypes
+import io
+
 from googleapiclient.discovery import MediaFileUpload
+from googleapiclient.http import MediaIoBaseDownload
 
 from cloud.service import BaseService
 import config.google as config
@@ -27,6 +30,15 @@ class DriveService(BaseService):
         media = MediaFileUpload(file_path, mimetype=mimetype)
         drive_file = self.service.files().create(body=metadata, media_body=media, fields='id').execute()
         return drive_file.get('id')
+
+    def download_file(self, file_id):
+        request = self.service.files().get_media(fileId=file_id)
+        fh = io.BytesIO()
+        downloader = MediaIoBaseDownload(fh, request)
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+        return fh
 
     def create_folder(self, name, folder_id=config.root_folder):
         metadata = {
