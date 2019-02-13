@@ -6,11 +6,12 @@ from db.models import Session, UserSession
 
 from cloud import googleDrive
 
+
 class SessionManager:
     def create_session(name, curator_id, chat_id):
         curator = User.get(user=curator_id)
         query = Session.select().where((Session.chat == chat_id)
-                                        & Session.status is not False) # can be null!
+                                        & (Session.status.is_null() | Session.status)) # can be null!
         if not query.exists():
             Session.create(name=name, curator=curator, chat=chat_id)
             return True
@@ -53,7 +54,7 @@ class SessionManager:
         return None
 
     def get_chat_session(chat_id):
-        query = Session.select().where((Session.chat == chat_id))
+        query = Session.select().where((Session.chat == chat_id) & (Session.status.is_null() | Session.status))
         if query.exists():
             session = query.get()
             return session
