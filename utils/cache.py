@@ -36,7 +36,7 @@ class Cache:
         return result
 
 
-def cached(func):
+def cached(func): # TODO: rewrite to get file-name in decorator args; one-module = one-cache-file
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -52,6 +52,6 @@ def cached(func):
             result = func.cache.update(func.cache.hash_key(*args, **kwargs), func(*args, **kwargs))
             return result
 
-    func.cache = Cache(func)
+    func.cache = Cache(func, func.__name__+'.cache')
     wrapper.cache = func.cache
     return wrapper

@@ -28,3 +28,4 @@ venv.bak/
 #Configs
 config/telegram.py
 config/google_secret.json
+config/imgur.py
