@@ -3,8 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# db
+# Database
 *.db
+*.db-journal
 *.sqlite3
 
 # Log and cache files
