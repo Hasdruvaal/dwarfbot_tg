@@ -8,6 +8,7 @@ import telegram
 if __name__ == '__main__':
     init_logging()
     init_db()
+
+    # Start work
     info('Starting the bot')
     telegram.bot.polling()
-

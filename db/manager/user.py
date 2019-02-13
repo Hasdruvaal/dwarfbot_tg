@@ -2,7 +2,12 @@ from db.models.user import User
 
 
 class UserManager:
-    # returns bool
+    def get_user(user_id):
+        query = User.select().where(User.user == user_id)
+        if query.exists():
+            return query.get()
+        return None
+
     def check_user(user_id):
         return User.select().where(User.user == user_id).exists()
 

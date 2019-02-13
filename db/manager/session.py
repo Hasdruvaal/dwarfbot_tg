@@ -4,12 +4,14 @@ import random
 from db.models.user import User
 from db.models import Session, UserSession
 
+from cloud import googleDrive
+
 
 class SessionManager:
     def create_session(name, curator_id, chat_id):
         curator = User.get(user=curator_id)
         query = Session.select().where((Session.chat == chat_id)
-                                        & Session.status is not False) # can be null!
+                                        & (Session.status.is_null() | Session.status)) # can be null!
         if not query.exists():
             Session.create(name=name, curator=curator, chat=chat_id)
             return True
@@ -52,7 +54,7 @@ class SessionManager:
         return None
 
     def get_chat_session(chat_id):
-        query = Session.select().where((Session.chat == chat_id))
+        query = Session.select().where((Session.chat == chat_id) & (Session.status.is_null() | Session.status))
         if query.exists():
             session = query.get()
             return session
@@ -73,6 +75,10 @@ class SessionManager:
             .order_by(UserSession.position)
         if player_session.exists():
             session = Session.get_by_id(session_id)
+            dir_id = googleDrive.create_folder(session.name)
+            doc_id = googleDrive.create_doc(session.name, dir_id)
+            session.cloud_doc = doc_id
+            session.cloud_dir = dir_id
             session.status = True
             session.save()
             player_session = player_session.get()

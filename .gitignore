@@ -3,11 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# db
+# Database
 *.db
+*.db-journal
 *.sqlite3
 
-# Log files
+# Log and cache files
 *.log
 *.cache
 
@@ -26,3 +27,4 @@ venv.bak/
 
 #Configs
 config/telegram.py
+config/google_secret.json

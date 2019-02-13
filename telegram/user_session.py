@@ -4,6 +4,8 @@ from telegram import bot
 from telegram.decorators import *
 from db.manager import UserSessionManager, SessionManager, UserManager
 
+from cloud import googleDocs
+
 
 @bot.message_handler(commands=['toggle'])
 @group
@@ -70,14 +72,9 @@ def skip_player(message, text=None):
         if new:
             bot.reply_to(message, 'Current player is skipped!')
             bot.send_message(old.user, 'Sorry! But your step was skipped by curator' if not text else text)
-            if UserSessionManager.write_perv(old):
-                file_name = old.game_name()
-                with open(file_name, 'wb') as f:
-                    f.write(old.game)
-                bot.send_document(new.user, open(file_name, 'rb'), caption='Your turn!')
-                # there is a problem telebot sends file without extension
-                # i haven't any idea how to fix that
-                os.remove(file_name)
+            save_id = UserSessionManager.write_perv(old)
+            if save_id:
+                bot.send_message(new.user, 'Your turn!\nDownload the save: ' + googleDocs.get_link(save_id))
 
 
 @bot.message_handler(commands=['add'])
@@ -93,9 +90,10 @@ def add_player(message):
         if message.reply_to_message:
             if not UserManager.check_user(message.reply_to_message.from_user.id):
                 bot.reply_to(message, 'Player must auth!')
+                return
             if UserSessionManager.toggle_player(user_id=message.reply_to_message.from_user.id,
-                                             session_id=session,
-                                             force_add=True):
+                                                session_id=session,
+                                                force_add=True):
                 bot.reply_to(message, 'Player was added!')
             else:
                 bot.reply_to(message, 'Something went wrong')
@@ -108,14 +106,48 @@ def add_player(message):
 @group
 @logging
 def round(message):
-    shuffle = ' '.join(message.text.split(maxsplit=1)[1:]).strip() or 'False'
+    shuffle = ' '.join(message.text.split(maxsplit=1)[1:]).strip() or None
     session = SessionManager.get_chat_session(message.chat.id)
     if not session:
         return
     if session.id not in SessionManager.get_player_sessions(message.from_user.id):
         return
 
-    if UserSessionManager.round(session.id):
+    if UserSessionManager.round(session.id, shuffle):
         bot.reply_to(message, 'Round was added')
     else:
         bot.reply_to(message, 'Cant make round')
+
+
+@bot.message_handler(commands=['fact'])
+@bot.message_handler(content_types=['photo'])
+@authorise
+@group
+def fact(message):
+    session = SessionManager.get_chat_session(message.chat.id)
+    if not session:
+        return
+
+    text, img = None, None
+    if message.content_type == 'text':
+        text = message.text
+    elif message.caption and '/fact' in message.caption:
+         text = message.caption.replace('/fact ', '')
+         img = 'https://github.com/dtsvetkov1/Google-Drive-sync/raw/master/google-drive-logo-logo.png'
+         # TODO: download and add photo to imgur, add image-url here
+    else:
+        return
+
+    text = ' '.join(text.split(maxsplit=1)[1:]).strip() or None
+
+    current_session = UserSessionManager.get_players(session)[-1]
+    sender = UserManager.get_user(message.from_user.id)
+
+    if sender == current_session.user:
+        googleDocs.add_data(
+                document_id=current_session.session.cloud_doc,
+                owner=sender.get_name(),
+                text=text,
+                image=img
+            )
+        bot.reply_to(message, current_session.session.hashtag())

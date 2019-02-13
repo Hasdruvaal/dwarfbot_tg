@@ -8,6 +8,8 @@ from telegram import bot
 from telegram.decorators import *
 from config.telegram import token as api_token
 
+from cloud import googleDrive
+
 hideBoard = types.ReplyKeyboardRemove()
 chosen_sessions = {}
 
@@ -43,19 +45,25 @@ def process_session_choose(message):
 def process_get_file(message):
     user_session = UserSessionManager.get_by_id(chosen_sessions.pop(message.from_user.id))
     file_info = bot.get_file(message.document.file_id)
-    file = requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(api_token, file_info.file_path))
-    if file.status_code != 200:
+    try:
+        file = requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(api_token, file_info.file_path))
+        if file.status_code != 200:
+            raise Exception('Cant download save-game')
+    except Exception as e:
         bot.reply_to(message, 'Something went wrong!')
         return
 
-    UserSessionManager.write_save(file.content, user_session)
+    file_name = user_session.game_name()
+    with open(file_name, 'wb') as f:
+        f.write(file.content)
+    save_id = googleDrive.upload_file(file_name, file_name, user_session.session.cloud_dir)
+    os.remove(file_name)
+
+    UserSessionManager.write_save(save_id, user_session)
+
     old, new = UserSessionManager.step(user_session.session)
     bot.reply_to(message, 'Your turn came to the end!')
     if new:
-        file_name = old.game_name()
-        with open(file_name, 'wb') as f:
-            f.write(old.game)
-        bot.send_document(new.user, open(file_name, 'rb'), caption='Your turn!')
-        # there is a problem telebot sends file without extension
-        # i haven't any idea how to fix that
-        os.remove(file_name)
+        bot.send_message(new.user, 'Your turn!\nDownload the save: '+googleDrive.get_link(save_id))
+    else:
+        bot.send_message(old.session.chat, 'The round of game is end. Last save: '+googleDrive.get_link(save_id))
