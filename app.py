@@ -10,4 +10,3 @@ if __name__ == '__main__':
     init_db()
     info('Starting the bot')
     telegram.bot.polling()
-
