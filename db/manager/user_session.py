@@ -108,20 +108,20 @@ class UserSessionManager:
         if shuffle:
             random.shuffle(round_user_sessions)
         for user_session in round_user_sessions:
-            if not UserSessionManager.toggle_player(session_id = session_id,
-                                             user_id = user_session.user,
-                                             force_add = True):
+            if not UserSessionManager.toggle_player(session_id=session_id,
+                                                    user_id=user_session.user,
+                                                    force_add=True):
                 return False
         return True
 
     def check_save(user_session_id):
         return UserSession.select().where((UserSession.session == user_session_id)
-                                                 & (UserSession.game)).exists()
+                                           & (UserSession.game)).exists()
 
-    def write_save(file, user_session_id):
+    def write_save(file_id, user_session_id):
         if not UserSessionManager.check_save(user_session_id):
             user_session = UserSessionManager.get_by_id(user_session_id)
-            user_session.game = file
+            user_session.game = file_id
             user_session.save()
             return user_session.game
         else:

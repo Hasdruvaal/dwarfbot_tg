@@ -6,6 +6,7 @@ from db.manager import UserSessionManager, SessionManager, UserManager
 
 from cloud import googleDocs
 
+
 @bot.message_handler(commands=['toggle'])
 @group
 @logging
@@ -71,14 +72,9 @@ def skip_player(message, text=None):
         if new:
             bot.reply_to(message, 'Current player is skipped!')
             bot.send_message(old.user, 'Sorry! But your step was skipped by curator' if not text else text)
-            if UserSessionManager.write_perv(old):
-                file_name = old.game_name()
-                with open(file_name, 'wb') as f:
-                    f.write(old.game)
-                bot.send_document(new.user, open(file_name, 'rb'), caption='Your turn!')
-                # there is a problem telebot sends file without extension
-                # i haven't any idea how to fix that
-                os.remove(file_name)
+            save_id = UserSessionManager.write_perv(old)
+            if save_id:
+                bot.send_message(new.user, 'Your turn!\nDownload the save: ' + googleDocs.get_link(save_id))
 
 
 @bot.message_handler(commands=['add'])

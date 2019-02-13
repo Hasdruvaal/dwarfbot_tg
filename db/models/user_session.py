@@ -1,6 +1,6 @@
 import datetime
 
-from peewee import ForeignKeyField, IntegerField, BooleanField, BlobField, DateField
+from peewee import ForeignKeyField, IntegerField, BooleanField, TextField, DateField
 from db.models import BaseModel
 from db.models.user import User
 from db.models.session import Session
@@ -11,7 +11,7 @@ class UserSession(BaseModel):
     session = ForeignKeyField(Session)
     position = IntegerField(primary_key=False)
     status = BooleanField(default=False)
-    game = BlobField(null=True)
+    game = TextField(null=True)
     date_to = DateField(default=datetime.datetime.now() + datetime.timedelta(days=7))
 
     def game_name(self):
