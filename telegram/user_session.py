@@ -4,6 +4,7 @@ from telegram import bot
 from telegram.decorators import *
 from db.manager import UserSessionManager, SessionManager, UserManager
 
+from cloud import googleDocs
 
 @bot.message_handler(commands=['toggle'])
 @group
@@ -119,3 +120,35 @@ def round(message):
         bot.reply_to(message, 'Round was added')
     else:
         bot.reply_to(message, 'Cant make round')
+
+@bot.message_handler(commands=['fact'])
+@bot.message_handler(content_types=['photo'])
+@authorise
+@group
+def fact(message):
+    session = SessionManager.get_chat_session(message.chat.id)
+    if not session:
+        return
+
+    text, img = None, None
+    if message.content_type == 'text':
+        text = message.text
+    elif message.caption and '/fact' in message.caption:
+         text = message.caption.replace('/fact ', '')
+         img = 'https://github.com/dtsvetkov1/Google-Drive-sync/raw/master/google-drive-logo-logo.png' # TODO: download and add photo to imgur, add image-url here
+    else:
+        return
+
+    text = ' '.join(text.split(maxsplit=1)[1:]).strip() or None
+
+    current_session = UserSessionManager.get_players(session)[-1]
+    sender = UserManager.get_user(message.from_user.id)
+
+    if sender == current_session.user:
+        googleDocs.add_data(
+                document_id=current_session.session.cloud_doc,
+                owner=sender.get_name(),
+                text=text,
+                image=img
+            )
+        bot.reply_to(message, current_session.session.hashtag())

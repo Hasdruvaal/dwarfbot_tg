@@ -8,6 +8,8 @@ from telegram import bot
 from telegram.decorators import *
 from config.telegram import token as api_token
 
+from cloud import googleDrive
+
 hideBoard = types.ReplyKeyboardRemove()
 chosen_sessions = {}
 
@@ -53,9 +55,6 @@ def process_get_file(message):
     bot.reply_to(message, 'Your turn came to the end!')
     if new:
         file_name = old.game_name()
-        with open(file_name, 'wb') as f:
-            f.write(old.game)
-        bot.send_document(new.user, open(file_name, 'rb'), caption='Your turn!')
-        # there is a problem telebot sends file without extension
-        # i haven't any idea how to fix that
+        googleDrive.upload_file(file_name, file_name, new.session.cloud_dir)
+        bot.send_document(new.user, file_info, caption='Your turn!')
         os.remove(file_name)

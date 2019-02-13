@@ -2,6 +2,7 @@ import mimetypes
 from googleapiclient.discovery import MediaFileUpload
 
 from cloud.service import BaseService
+import config.google as config
 
 
 class DriveService(BaseService):
@@ -27,7 +28,7 @@ class DriveService(BaseService):
         drive_file = self.service.files().create(body=metadata, media_body=media, fields='id').execute()
         return drive_file.get('id')
 
-    def create_folder(self, name, folder_id):
+    def create_folder(self, name, folder_id=config.root_folder):
         metadata = {
             'name': name,
             'mimeType': 'application/vnd.google-apps.folder',

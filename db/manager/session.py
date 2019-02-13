@@ -4,6 +4,7 @@ import random
 from db.models.user import User
 from db.models import Session, UserSession
 
+from cloud import googleDrive
 
 class SessionManager:
     def create_session(name, curator_id, chat_id):
@@ -73,6 +74,10 @@ class SessionManager:
             .order_by(UserSession.position)
         if player_session.exists():
             session = Session.get_by_id(session_id)
+            dir_id = googleDrive.create_folder(session.name)
+            doc_id = googleDrive.create_doc(session.name, dir_id)
+            session.cloud_doc = doc_id
+            session.cloud_dir = dir_id
             session.status = True
             session.save()
             player_session = player_session.get()

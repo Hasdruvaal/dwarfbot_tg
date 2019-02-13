@@ -29,9 +29,9 @@ class DocsService(BaseService):
         return {'insertInlineImage': {
                     'location': { 'index': index },
                     'uri': image,
-                    'objectSize': {'height': {'magnitude': 350,
+                    'objectSize': {'height': {'magnitude': 480,
                                               'unit': 'PT'},
-                                    'width': {'magnitude': 350,
+                                    'width': {'magnitude': 480,
                                               'unit': 'PT'}
                                   }
                     }
