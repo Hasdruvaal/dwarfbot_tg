@@ -7,7 +7,7 @@ __pycache__/
 *.db
 *.sqlite3
 
-# Log files
+# Log and cache files
 *.log
 *.cache
 
@@ -26,3 +26,4 @@ venv.bak/
 
 #Configs
 config/telegram.py
+config/google_secret.json
