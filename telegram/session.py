@@ -53,13 +53,13 @@ def description(message):
         bot.reply_to(message, 'There is nothing to show')
 
 
-@bot.message_handler(commands=['start','embark'])
+@bot.message_handler(commands=['start', 'embark'])
 @authorise
 @group
 @logging
 def start_session(message):
     session = SessionManager.get_chat_session(message.chat.id)
-    if not session:
+    if not session or session.status:
         return
     if session.id not in SessionManager.get_player_sessions(message.from_user.id):
         return

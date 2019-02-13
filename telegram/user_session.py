@@ -90,9 +90,10 @@ def add_player(message):
         if message.reply_to_message:
             if not UserManager.check_user(message.reply_to_message.from_user.id):
                 bot.reply_to(message, 'Player must auth!')
+                return
             if UserSessionManager.toggle_player(user_id=message.reply_to_message.from_user.id,
-                                             session_id=session,
-                                             force_add=True):
+                                                session_id=session,
+                                                force_add=True):
                 bot.reply_to(message, 'Player was added!')
             else:
                 bot.reply_to(message, 'Something went wrong')
@@ -105,17 +106,18 @@ def add_player(message):
 @group
 @logging
 def round(message):
-    shuffle = ' '.join(message.text.split(maxsplit=1)[1:]).strip() or 'False'
+    shuffle = ' '.join(message.text.split(maxsplit=1)[1:]).strip() or None
     session = SessionManager.get_chat_session(message.chat.id)
     if not session:
         return
     if session.id not in SessionManager.get_player_sessions(message.from_user.id):
         return
 
-    if UserSessionManager.round(session.id):
+    if UserSessionManager.round(session.id, shuffle):
         bot.reply_to(message, 'Round was added')
     else:
         bot.reply_to(message, 'Cant make round')
+
 
 @bot.message_handler(commands=['fact'])
 @bot.message_handler(content_types=['photo'])
@@ -131,7 +133,8 @@ def fact(message):
         text = message.text
     elif message.caption and '/fact' in message.caption:
          text = message.caption.replace('/fact ', '')
-         img = 'https://github.com/dtsvetkov1/Google-Drive-sync/raw/master/google-drive-logo-logo.png' # TODO: download and add photo to imgur, add image-url here
+         img = 'https://github.com/dtsvetkov1/Google-Drive-sync/raw/master/google-drive-logo-logo.png'
+         # TODO: download and add photo to imgur, add image-url here
     else:
         return
 
