@@ -1,10 +1,8 @@
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from cloud.auth import CloudAuthData
 
 from utils.cache import cached
-import config.google as config
-
-from cloud.auth import CloudAuthData
 
 class CloudSession:
     def __init__(self, authData, secret_file='google_credentials.json'):
@@ -26,6 +24,7 @@ class CloudSession:
         flow = InstalledAppFlow.from_client_secrets_file(self.authData.secret_file, self.authData.scopes)
         self.creds = flow.run_local_server()
 
+    @staticmethod
     @cached
-    def get_google_data(authData: CloudAuthData):
-        return CloudSession(authData)
+    def google(creds: CloudAuthData):
+        return CloudSession(creds)
