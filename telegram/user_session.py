@@ -1,10 +1,12 @@
 import os
 
+from config import telegram as config
 from telegram import bot
 from telegram.decorators import *
 from db.manager import UserSessionManager, SessionManager, UserManager
 
 from cloud import googleDocs
+import images
 
 
 @bot.message_handler(commands=['toggle'])
@@ -130,24 +132,25 @@ def fact(message):
 
     text, img = None, None
     if message.content_type == 'text':
-        text = message.text
+        text = ' '.join(message.text.split(maxsplit=1)[1:]).strip() or None
     elif message.caption and '/fact' in message.caption:
-         text = message.caption.replace('/fact ', '')
-         img = 'https://github.com/dtsvetkov1/Google-Drive-sync/raw/master/google-drive-logo-logo.png'
-         # TODO: download and add photo to imgur, add image-url here
+        text = message.caption.replace('/fact ', '') or None
+
+        file_info = bot.get_file(message.photo[len(message.photo)-1].file_id)
+        img = images.client.upload_from_url('https://api.telegram.org/file/bot{0}/{1}'.format(config.token, file_info.file_path),
+                                             config={'album':session.album},
+                                             anon=False).get('link')
     else:
         return
-
-    text = ' '.join(text.split(maxsplit=1)[1:]).strip() or None
 
     current_session = UserSessionManager.get_players(session)[-1]
     sender = UserManager.get_user(message.from_user.id)
 
     if sender == current_session.user:
         googleDocs.add_data(
-                document_id=current_session.session.cloud_doc,
+                document_id=session.document,
                 owner=sender.get_name(),
-                text=text,
+                text=text.strip(),
                 image=img
             )
-        bot.reply_to(message, current_session.session.hashtag())
+        bot.reply_to(message, session.hashtag())
