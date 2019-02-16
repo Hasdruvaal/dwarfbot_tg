@@ -3,10 +3,11 @@ from peewee import IntegerField, TextField
 
 
 class User(BaseModel):
-    user = IntegerField(primary_key=True)
+    id = IntegerField(primary_key=True)
     user_name = TextField(null=True)
     first_name = TextField(null=True)
     last_name = TextField(null=True)
 
     def get_name(self):
-        return self.user_name or self.first_name+' '+self.last_name
+        name_alias = '{} {}'.format(self.first_name or '', self.last_name or '')
+        return self.user_name or name_alias.strip() or str(id)

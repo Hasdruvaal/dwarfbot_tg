@@ -1,6 +1,6 @@
 from telegram import bot
 from telegram.decorators import *
-from db.manager import UserManager
+from db.manager import userManager
 
 
 @bot.message_handler(commands=['auth'])
@@ -8,10 +8,8 @@ from db.manager import UserManager
 @logging
 def send_greeting(message):
     if message.chat.type == "private":
-        UserManager.add_user(message.from_user.id,
-                             message.chat.id,
-                             message.from_user.username,
-                             message.from_user.first_name,
-                             message.from_user.last_name
-                             )
+        userManager.add_user(id=message.from_user.id,
+                             user_name=message.from_user.username,
+                             first_name=message.from_user.first_name,
+                             last_name=message.from_user.last_name)
     bot.reply_to(message, "Greetings! The bot recognised you.")

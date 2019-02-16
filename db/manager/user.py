@@ -1,22 +1,11 @@
-from db.models.user import User
+from db.manager.base import BaseManager
+from db.models import User
 
 
-class UserManager:
-    def get_user(user_id):
-        query = User.select().where(User.user == user_id)
-        if query.exists():
-            return query.get()
-        return None
+class UserManager(BaseManager):
+    def add_user(self, **kwargs):
+        if not self.get(kwargs.get('id')):
+            return self.create(**kwargs)
 
-    def check_user(user_id):
-        return User.select().where(User.user == user_id).exists()
 
-    # returns bool
-    def add_user(user_id, chat_id, username, first_name, last_name):
-        if not UserManager.check_user(user_id):
-            User.create(user=user_id,
-                        user_name=username,
-                        first_name=first_name,
-                        last_name=last_name)
-            return True
-        return False
+userManager = UserManager(User)

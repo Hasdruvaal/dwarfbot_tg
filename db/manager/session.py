@@ -1,96 +1,76 @@
-from peewee import fn
-import random
+from db.manager.base import BaseManager
+from db.manager.user import userManager
+from db.models import Session
+from db.models import UserSession
 
-from db.models.user import User
-from db.models import Session, UserSession
 
-
-class SessionManager:
-    def create_session(name, curator_id, chat_id):
-        curator = User.get(user=curator_id)
-        query = Session.select().where((Session.chat == chat_id)
-                                        & (Session.status.is_null() | Session.status)) # can be null!
+class SessionManager(BaseManager):
+    def create_session(self, name, curator_id, chat_id):
+        query = self.select().where((self.model.chat == chat_id)
+                                    & (self.model.status.is_null() | self.model.status))
         if not query.exists():
-            Session.create(name=name, curator=curator, chat=chat_id)
-            return True
-        return False
+            return self.create(name=name, curator=userManager.get(curator_id), chat=chat_id)
 
-    def delete_session(curator_id, chat_id):
-        curator = User.get(user=curator_id)
-        query = Session.select().where((Session.curator == curator) &
-                                       (Session.chat == chat_id) &
-                                       (Session.status.is_null()))
-        if query.exists():
-            query.get().delete_instance()
-            return True
-        return False
+    def delete_session(self, curator_id, chat_id):
+        session = self.active_chat_session(chat_id)
+        if session and session.curator_id == curator_id:
+            UserSession.delete().where((UserSession.session == session)).execute()
+            return self.delete().where((self.model.curator == curator_id) &
+                                       (self.model.chat == chat_id) &
+                                       (self.model.status.is_null())) \
+                                .execute()
 
-    def rename_session(curator_id, chat_id, name):
-        curator = User.get_or_none(user=curator_id)
-        query = Session.select().where((Session.chat == chat_id)
-                                       & (Session.status.is_null()
-                                          | Session.status))
+    def active_chat_session(self, chat_id):
+        query = self.select().where((self.model.chat == chat_id)
+                                    & (self.model.status.is_null()
+                                       | self.model.status))
         if query.exists():
-            session = query.get()
-            if name and session.curator == curator:
+            return query.get()
+
+    def rename(self, curator_id, chat_id, name=''):
+        session = self.active_chat_session(chat_id)
+        if session:
+            if name and session.curator == userManager.get(curator_id):
                 session.name = name
                 session.save()
             return session.name
-        return None
 
-    def description(curator_id, chat_id, description):
-        curator = User.get_or_none(user=curator_id)
-        query = Session.select().where((Session.chat == chat_id)
-                                       & (Session.status.is_null()
-                                          | Session.status))
-        if query.exists():
-            session = query.get()
-            if description and session.curator == curator:
+    def description(self, curator_id, chat_id, description=''):
+        session = self.active_chat_session(chat_id)
+        if session:
+            if description and session.curator == userManager.get(curator_id):
                 session.description = description
                 session.save()
             return session.description
-        return None
 
-    def get_chat_session(chat_id):
-        query = Session.select().where((Session.chat == chat_id) & (Session.status.is_null() | Session.status))
-        if query.exists():
-            session = query.get()
-            return session
-        return None
-
-    def get_session(session_id):
-        return Session.get_by_id(session_id)
-
-
-    def get_player_sessions(curator_id):
-        sessions = Session.select()\
-            .where((Session.curator == curator_id))
+    def get_player_sessions(self, curator_id):
+        sessions = self.select().where(self.model.curator == curator_id)
         return [session.id for session in sessions]
 
-    def start_session(session_id):
-        player_session = UserSession.select()\
-            .where(UserSession.session == session_id)\
-            .order_by(UserSession.position)
+    def start(self, session_id):
+        player_session = UserSession.select().where(UserSession.session == session_id) \
+                                             .order_by(UserSession.position)
         if player_session.exists():
-            session = Session.get_by_id(session_id)
+            session = self.get(session_id)
             session.status = True
             session.save()
             session.init_cloud()
             session.create_album()
             player_session = player_session.get()
             player_session.status = True
-            player_session.save()
-            return True
+            return player_session.save()
         return False
 
-    def stop_session(session_id):
-        player_session = UserSession.select()\
-            .where((UserSession.session == session_id)
-                   & (UserSession.status))
+    def stop(self, session_id):
+        player_session = UserSession.select().where((UserSession.session == session_id)
+                                                    & UserSession.status)
         if player_session.exists():
             player_session = player_session.get()
             player_session.status = False
             player_session.save()
-        session = Session.get_by_id(session_id)
+        session = self.get(session_id)
         session.status = False
         return session.save()
+
+
+sessionManager = SessionManager(Session)

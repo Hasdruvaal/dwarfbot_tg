@@ -1,9 +1,7 @@
-import os
-
 from config import telegram as config
 from telegram import bot
 from telegram.decorators import *
-from db.manager import UserSessionManager, SessionManager, UserManager
+from db.manager import userSessionManager, sessionManager, userManager
 
 from cloud import googleDocs
 import images
@@ -13,14 +11,15 @@ import images
 @group
 @logging
 def toggle_player(message):
-    session = SessionManager.get_chat_session(message.chat.id)
-    UserManager.add_user(message.from_user.id,
-                         message.chat.id,
-                         message.from_user.username,
-                         message.from_user.first_name,
-                         message.from_user.last_name)
+    if message.from_user.is_bot:
+        return
+    session = sessionManager.active_chat_session(message.chat.id)
+    userManager.add_user(id=message.from_user.id,
+                         username=message.from_user.username,
+                         first_name=message.from_user.first_name,
+                         last_name=message.from_user.last_name)
     if session and session.status is None:
-        if UserSessionManager.toggle_player(session, message.from_user.id):
+        if userSessionManager.toggle_player(session, message.from_user.id):
             bot.reply_to(message, 'You were added to the session game')
         else:
             bot.reply_to(message, 'You were deleted from the session game')
@@ -31,9 +30,9 @@ def toggle_player(message):
 @bot.message_handler(commands=['players'])
 @group
 @logging
-def players(message):
-    session = SessionManager.get_chat_session(message.chat.id)
-    players, cur = UserSessionManager.get_players(session)
+def show_players(message):
+    session = sessionManager.active_chat_session(message.chat.id)
+    players, cur = userSessionManager.get_players(session)
     reply_text = '\n'.join(str(k) + ': ' + v.get_name() for k, v in players.items())
     reply_text = 'Players list:\n' + reply_text
     if cur:
@@ -48,15 +47,15 @@ def players(message):
 @bot.message_handler(commands=['shuffle'])
 @group
 @logging
-def shuffle_player(message):
-    session = SessionManager.get_chat_session(message.chat.id)
+def shuffle_players(message):
+    session = sessionManager.active_chat_session(message.chat.id)
     if not session:
         return
-    if session.id not in SessionManager.get_player_sessions(message.from_user.id):
+    if session.id not in sessionManager.get_player_sessions(message.from_user.id):
         return
 
-    if session and UserSessionManager.shuffle_players(message.chat.id, session):
-        players(message)
+    if userSessionManager.shuffle_players(session):
+        show_players(message)
     else:
         bot.reply_to(message, 'Failed to shuffle: there is no one to shuffle')
 
@@ -65,18 +64,24 @@ def shuffle_player(message):
 @group
 @authorise
 @logging
-def skip_player(message, text=None):
-    session = SessionManager.get_chat_session(message.chat.id)
-    if not session:
+def skip_player(message):
+    session = sessionManager.active_chat_session(message.chat.id)
+    if not session or session.id not in sessionManager.get_player_sessions(message.from_user.id):
         return
-    if session.id in SessionManager.get_player_sessions(message.from_user.id):
-        old, new = UserSessionManager.step(session)
-        if new:
-            bot.reply_to(message, 'Current player is skipped!')
-            bot.send_message(old.user, 'Sorry! But your step was skipped by curator' if not text else text)
-            save_id = UserSessionManager.write_perv(old)
-            if save_id:
-                bot.send_message(new.user, 'Your turn!\nDownload the save: ' + googleDocs.get_link(save_id))
+
+    old, new = userSessionManager.step(session)
+    bot.send_message(old.user, 'Sorry! Your step was skipped!')
+    if old:
+        bot.send_message(session.chat, 'Current player is skipped!')
+
+    if new:
+        save_id = userSessionManager.write_from_prev(old)
+        if save_id:
+            bot.send_message(new.user, 'Your turn!\nDownload the save: ' + googleDocs.get_link(save_id))
+        else:
+            bot.send_message(new.user, 'Your turn!\nYou are the first!')
+    else:
+        bot.send_message(session.chat, 'The round of game is end.')
 
 
 @bot.message_handler(commands=['add'])
@@ -84,38 +89,43 @@ def skip_player(message, text=None):
 @authorise
 @logging
 def add_player(message):
-    session = SessionManager.get_chat_session(message.chat.id)
+    session = sessionManager.active_chat_session(message.chat.id)
     if not session:
         return
 
-    if session.id in SessionManager.get_player_sessions(message.from_user.id):
+    if session.id in sessionManager.get_player_sessions(message.from_user.id):
         if message.reply_to_message:
-            if not UserManager.check_user(message.reply_to_message.from_user.id):
-                bot.reply_to(message, 'Player must auth!')
+            reply = message.reply_to_message
+            if reply.from_user.is_bot:
                 return
-            if UserSessionManager.toggle_player(user_id=message.reply_to_message.from_user.id,
+            to_add = userManager.get(reply.from_user.id) or \
+                userManager.add_user(id=reply.from_user.id,
+                                     user_name=reply.from_user.username,
+                                     first_name=reply.from_user.first_name,
+                                     last_name=reply.from_user.last_name)
+            if userSessionManager.toggle_player(user_id=to_add,
                                                 session_id=session,
                                                 force_add=True):
                 bot.reply_to(message, 'Player was added!')
             else:
                 bot.reply_to(message, 'Something went wrong')
         else:
-            bot.reply_to(message, 'You must reply to the user message for add that user!')
+            bot.reply_to(message, 'You must reply to the id message for add that id!')
 
 
 @bot.message_handler(commands=['round'])
 @authorise
 @group
 @logging
-def round(message):
+def close_round(message):
     shuffle = ' '.join(message.text.split(maxsplit=1)[1:]).strip() or None
-    session = SessionManager.get_chat_session(message.chat.id)
+    session = sessionManager.active_chat_session(message.chat.id)
     if not session:
         return
-    if session.id not in SessionManager.get_player_sessions(message.from_user.id):
+    if session.id not in sessionManager.get_player_sessions(message.from_user.id):
         return
 
-    if UserSessionManager.round(session.id, shuffle):
+    if userSessionManager.round(session.id, shuffle):
         bot.reply_to(message, 'Round was added')
     else:
         bot.reply_to(message, 'Cant make round')
@@ -126,7 +136,7 @@ def round(message):
 @authorise
 @group
 def fact(message):
-    session = SessionManager.get_chat_session(message.chat.id)
+    session = sessionManager.active_chat_session(message.chat.id)
     if not session:
         return
 
@@ -137,20 +147,19 @@ def fact(message):
         text = message.caption.replace('/fact ', '') or None
 
         file_info = bot.get_file(message.photo[len(message.photo)-1].file_id)
-        img = images.client.upload_from_url('https://api.telegram.org/file/bot{0}/{1}'.format(config.token, file_info.file_path),
-                                             config={'album':session.album},
-                                             anon=False).get('link')
+        img = images.client.upload_from_url('https://api.telegram.org/file/bot{0}/{1}'.format(config.token,
+                                                                                              file_info.file_path),
+                                            config={'album': session.album},
+                                            anon=False).get('link')
     else:
         return
 
-    current_session = UserSessionManager.get_players(session)[-1]
-    sender = UserManager.get_user(message.from_user.id)
+    current_session = userSessionManager.get_players(session)[-1]
+    sender = userManager.get(message.from_user.id)
 
     if sender == current_session.user:
-        googleDocs.add_data(
-                document_id=session.document,
-                owner=sender.get_name(),
-                text=text.strip(),
-                image=img
-            )
+        googleDocs.add_data(document_id=session.document,
+                            owner=sender.get_name(),
+                            text=text.strip(),
+                            image=img)
         bot.reply_to(message, session.hashtag())

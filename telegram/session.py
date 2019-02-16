@@ -1,6 +1,6 @@
 from telegram import bot
 from telegram.decorators import *
-from db.manager import SessionManager
+from db.manager import sessionManager
 
 
 @bot.message_handler(commands=['create'])
@@ -9,7 +9,7 @@ from db.manager import SessionManager
 @logging
 def create_session(message):
     name = ' '.join(message.text.split(maxsplit=1)[1:]).strip() or 'Untitled'
-    if SessionManager.create_session(name, message.from_user.id, message.chat.id):
+    if sessionManager.create_session(name, message.from_user.id, message.chat.id):
         bot.reply_to(message, "Session created")
     else:
         bot.reply_to(message, "Failed to create: there is a session already created by you in this chat.")
@@ -19,7 +19,7 @@ def create_session(message):
 @group
 @logging
 def delete_session(message):
-    if SessionManager.delete_session(message.from_user.id, message.chat.id):
+    if sessionManager.delete_session(message.from_user.id, message.chat.id):
         bot.reply_to(message, "Session deleted")
     else:
         bot.reply_to(message, "Failed to delete: there are no sessions created by you in this chat.")
@@ -30,7 +30,7 @@ def delete_session(message):
 @logging
 def rename_session(message):
     new_name = ' '.join(message.text.split(maxsplit=1)[1:]).strip()
-    name = SessionManager.rename_session(message.from_user.id, message.chat.id, new_name)
+    name = sessionManager.rename(message.from_user.id, message.chat.id, new_name)
     if name:
         bot.reply_to(message, 'Session name: '+name)
     elif new_name and not name:
@@ -44,7 +44,7 @@ def rename_session(message):
 @logging
 def description(message):
     new_desc = ' '.join(message.text.split(maxsplit=1)[1:]).strip() or None
-    desc = SessionManager.description(message.from_user.id, message.chat.id, new_desc)
+    desc = sessionManager.description(message.from_user.id, message.chat.id, new_desc)
     if desc:
         bot.reply_to(message, 'Session description: '+desc)
     elif new_desc and not desc:
@@ -58,30 +58,30 @@ def description(message):
 @group
 @logging
 def start_session(message):
-    session = SessionManager.get_chat_session(message.chat.id)
+    session = sessionManager.active_chat_session(message.chat.id)
     if not session or session.status:
         return
-    if session.id not in SessionManager.get_player_sessions(message.from_user.id):
+    if session.id not in sessionManager.get_player_sessions(message.from_user.id):
         return
 
-    if SessionManager.start_session(session.id):
+    if sessionManager.start(session.id):
         bot.reply_to(message, 'Strike the earth!')
     else:
         bot.reply_to(message, 'You are not prepared for a journey!')
 
-@bot.message_handler(commands=['stop','abandon'])
+
+@bot.message_handler(commands=['stop', 'abandon'])
 @authorise
 @group
 @logging
 def stop_session(message):
-    session = SessionManager.get_chat_session(message.chat.id)
+    session = sessionManager.active_chat_session(message.chat.id)
     if not session:
         return
-    if session.id not in SessionManager.get_player_sessions(message.from_user.id):
+    if session.id not in sessionManager.get_player_sessions(message.from_user.id):
         return
 
-    if SessionManager.stop_session(session.id):
+    if sessionManager.stop(session.id):
         bot.reply_to(message, 'Session was stopped')
     else:
         bot.reply_to(message, 'There is nothing to stop')
-
