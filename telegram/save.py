@@ -6,7 +6,7 @@ from db.manager import userSessionManager
 
 from telegram import bot
 from telegram.decorators import *
-from config.telegram import token as api_token
+from config import tg_token
 
 from cloud import googleDrive
 
@@ -47,7 +47,7 @@ def process_get_file(message):
     user_session = userSessionManager.get(chosen_sessions.pop(message.from_user.id))
     file_info = bot.get_file(message.document.file_id)
     try:
-        file = requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(api_token, file_info.file_path))
+        file = requests.get('https://api.telegram.org/file/bot{0}/{1}'.format(tg_token, file_info.file_path))
         if file.status_code != 200:
             raise Exception('Cant download save-game')
     except Exception as e:

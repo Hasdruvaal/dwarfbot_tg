@@ -5,7 +5,7 @@ from googleapiclient.discovery import MediaFileUpload
 from googleapiclient.http import MediaIoBaseDownload
 
 from cloud.service import BaseService
-import config.google as config
+import config
 
 
 class DriveService(BaseService):
@@ -47,5 +47,5 @@ class DriveService(BaseService):
             'parents': [folder_id]
         }
         folder = self.service.files().create(body=metadata,
-                                    fields='id').execute()
+                                             fields='id').execute()
         return folder.get('id')

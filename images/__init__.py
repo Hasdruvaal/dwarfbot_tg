@@ -1,6 +1,6 @@
-from config import imgur as config
+import config
 from images.auth import ImagesAuthData
 from images.session import ImageSession
 
-authData = ImagesAuthData(config.api_key, config.api_secret)
+authData = ImagesAuthData(config.imgur_key, config.imgur_secret)
 client = ImageSession.imgur(authData)

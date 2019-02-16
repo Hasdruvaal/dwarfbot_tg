@@ -1,14 +1,14 @@
 import datetime
 import telebot
 
-import config.telegram as config
+import config
 
 try:
-    telebot.apihelper.proxy = config.proxy
+    telebot.apihelper.proxy = config.tg_proxy
 except:
     pass
 
-bot = telebot.TeleBot(config.token)
+bot = telebot.TeleBot(config.tg_token)
 
 from telegram.decorators import *
 from telegram.session import *
@@ -18,6 +18,7 @@ from telegram.save import *
 
 
 next_check = datetime.datetime.now()
+
 
 @bot.message_handler(func=lambda x: datetime.datetime.now() > next_check)
 def skip_sleepers(message):

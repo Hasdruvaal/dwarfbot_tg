@@ -4,6 +4,7 @@ from cloud.auth import CloudAuthData
 
 from utils.cache import cached
 
+
 class CloudSession:
     def __init__(self, authData, secret_file='google_credentials.json'):
         self.creds = None

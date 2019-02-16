@@ -1,4 +1,4 @@
-from config import telegram as config
+from config import tg_token
 from telegram import bot
 from telegram.decorators import *
 from db.manager import userSessionManager, sessionManager, userManager
@@ -147,7 +147,7 @@ def fact(message):
         text = message.caption.replace('/fact ', '') or None
 
         file_info = bot.get_file(message.photo[len(message.photo)-1].file_id)
-        img = images.client.upload_from_url('https://api.telegram.org/file/bot{0}/{1}'.format(config.token,
+        img = images.client.upload_from_url('https://api.telegram.org/file/bot{0}/{1}'.format(tg_token,
                                                                                               file_info.file_path),
                                             config={'album': session.album},
                                             anon=False).get('link')

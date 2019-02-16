@@ -26,6 +26,6 @@ venv.bak/
 .idea/
 
 #Configs
-config/telegram.py
+config/config.py
 config/google_secret.json
-config/imgur.py
+
