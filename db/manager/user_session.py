@@ -20,7 +20,8 @@ class UserSessionManager(BaseManager):
             position = position.get().position if position.exists() else 0
             return self.create(session=session_id, user=user_id, position=position + 1)
         else:
-            return query.get().delete_instance()
+            query.get().delete_instance()
+            return None
 
     def active_player(self, session_id):
         query = self.select().where((self.model.session == session_id)
@@ -51,7 +52,8 @@ class UserSessionManager(BaseManager):
             query = self.by_session(session)
             if query.exists():
                 players = [player.id for player in query]
-                random.shuffle(players.reverse())
+                players.reverse()
+                random.shuffle(players)
                 for player in players:
                     user_session = self.get(player)
                     user_session.position = players.index(player) + 1

@@ -1,5 +1,5 @@
 import re
-from peewee import IntegerField, TextField, ForeignKeyField, BooleanField
+from peewee import AutoField, TextField, ForeignKeyField, BooleanField
 
 from db.models import BaseModel
 from db.models.user import User
@@ -9,10 +9,10 @@ from cloud import googleDrive
 
 
 class Session(BaseModel):
-    id = IntegerField(primary_key=True)
+    id = AutoField(primary_key=True)
     name = TextField()
     curator = ForeignKeyField(User)
-    chat = IntegerField()
+    chat = TextField()
     status = BooleanField(null=True)
     description = TextField(null=True)
     document = TextField(null=True)
