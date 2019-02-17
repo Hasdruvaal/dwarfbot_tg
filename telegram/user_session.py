@@ -70,10 +70,9 @@ def skip_player(message):
         return
 
     old, new = userSessionManager.step(session)
-    bot.send_message(old.user, 'Sorry! Your step was skipped!')
     if old:
+        bot.send_message(old.user, 'Sorry! Your step was skipped!')
         bot.send_message(session.chat, 'Current player is skipped!')
-
     if new:
         save_id = userSessionManager.write_from_prev(old)
         if save_id:

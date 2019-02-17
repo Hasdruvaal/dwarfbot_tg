@@ -13,7 +13,7 @@ class SessionManager(BaseManager):
 
     def delete_session(self, curator_id, chat_id):
         session = self.active_chat_session(chat_id)
-        if session and session.curator_id == curator_id:
+        if session and session.curator_id == str(curator_id):
             UserSession.delete().where((UserSession.session == session)).execute()
             return self.delete().where((self.model.curator == curator_id) &
                                        (self.model.chat == chat_id) &
@@ -44,7 +44,7 @@ class SessionManager(BaseManager):
             return session.description
 
     def get_player_sessions(self, curator_id):
-        sessions = self.select().where(self.model.curator == curator_id)
+        sessions = self.select().where(self.model.curator == userManager.get(curator_id))
         return [session.id for session in sessions]
 
     def start(self, session_id):
@@ -69,8 +69,9 @@ class SessionManager(BaseManager):
             player_session.status = False
             player_session.save()
         session = self.get(session_id)
-        session.status = False
-        return session.save()
+        if session.status == True:
+            session.status = False
+            return session.save()
 
 
 sessionManager = SessionManager(Session)

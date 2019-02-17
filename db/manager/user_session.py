@@ -89,7 +89,7 @@ class UserSessionManager(BaseManager):
 
     def check_save(self, user_session_id):
         return self.select().where((self.model.session == user_session_id)
-                                   & self.model.game).exists()
+                                   & ~ self.model.game.is_null()).exists()
 
     def write_save(self, file_id, user_session_id):
         if not self.check_save(user_session_id):
