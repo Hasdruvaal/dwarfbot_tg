@@ -10,6 +10,7 @@ import images
 @bot.message_handler(commands=['toggle'])
 @group
 @logging
+@authorise
 def toggle_player(message):
     if message.from_user.is_bot:
         return
@@ -47,6 +48,7 @@ def show_players(message):
 @bot.message_handler(commands=['shuffle'])
 @group
 @logging
+@authorise
 def shuffle_players(message):
     session = sessionManager.active_chat_session(message.chat.id)
     if not session:
@@ -97,11 +99,10 @@ def add_player(message):
             reply = message.reply_to_message
             if reply.from_user.is_bot:
                 return
-            to_add = userManager.get(reply.from_user.id) or \
-                userManager.add_user(id=reply.from_user.id,
-                                     user_name=reply.from_user.username,
-                                     first_name=reply.from_user.first_name,
-                                     last_name=reply.from_user.last_name)
+            to_add = userManager.get(reply.from_user.id)
+            if not to_add:
+                bot.reply_to(message, 'Player must do /auth before adding!')
+                return
             if userSessionManager.toggle_player(user_id=to_add,
                                                 session_id=session,
                                                 force_add=True):

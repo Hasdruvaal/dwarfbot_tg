@@ -17,6 +17,7 @@ def create_session(message):
 
 @bot.message_handler(commands=['delete'])
 @group
+@authorise
 @logging
 def delete_session(message):
     if sessionManager.delete_session(message.from_user.id, message.chat.id):
@@ -27,6 +28,7 @@ def delete_session(message):
 
 @bot.message_handler(commands=['name'])
 @group
+@authorise
 @logging
 def rename_session(message):
     new_name = ' '.join(message.text.split(maxsplit=1)[1:]).strip()
