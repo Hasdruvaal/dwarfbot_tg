@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+ db:
+  image: postgres
+  restart: always
+  env_file: .env
+  ports:
+   - "${DB_PORT}:${DB_PORT}"
+  volumes:
+   - "${DATA_PATH}/pgdata:/data/pgdata"
+  environment:
+   PGDATA: /data/pgdata
+   POSTGRES_USER: ${DB_USER}
+   POSTGRES_PASSWORD: ${DB_PASS}
+   POSTGRES_DB: ${DB_NAME}
+  container_name: db
+ 
+ bot:
+  build: .
+  restart: always
+  env_file: .env
+  volumes:
+   - "${DATA_PATH}/logs:/code/logs"
+  depends_on:
+   - db
+  container_name: telegram-bot
+
