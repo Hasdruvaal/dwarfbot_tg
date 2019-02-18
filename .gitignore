@@ -26,6 +26,5 @@ venv.bak/
 .idea/
 
 #Configs
-config/config.py
 config/google_secret.json
 
