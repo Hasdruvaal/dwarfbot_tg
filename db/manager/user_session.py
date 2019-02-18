@@ -114,5 +114,10 @@ class UserSessionManager(BaseManager):
                                        | (self.model.date_to.day < now.day)))
         return query if query.exists() else None
 
+    def by_player(self, player, activeOnly=False):
+        query = self.select().where((self.model.user == player)
+                                   & (self.model.status if activeOnly else True))
+        return query if query.exists() else None
+
 
 userSessionManager = UserSessionManager(UserSession)

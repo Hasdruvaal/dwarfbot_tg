@@ -28,23 +28,6 @@ def toggle_player(message):
         bot.reply_to(message, 'Failed to toggle you to the game: there is no game session.')
 
 
-@bot.message_handler(commands=['players'])
-@group
-@logging
-def show_players(message):
-    session = sessionManager.active_chat_session(message.chat.id)
-    players, cur = userSessionManager.get_players(session)
-    reply_text = '\n'.join(str(k) + ': ' + v.get_name() for k, v in players.items())
-    reply_text = 'Players list:\n' + reply_text
-    if cur:
-        reply_text += '\nCurrent player: @'+cur.user.get_name() + \
-                      '\nCurrent step: '+str(cur.position)
-    if players:
-        bot.reply_to(message, reply_text)
-    else:
-        bot.reply_to(message, 'There are no players')
-
-
 @bot.message_handler(commands=['shuffle'])
 @group
 @logging

@@ -15,6 +15,7 @@ from telegram.session import *
 from telegram.user import *
 from telegram.user_session import *
 from telegram.save import *
+from telegram.info import *
 
 
 next_check = datetime.datetime.now()

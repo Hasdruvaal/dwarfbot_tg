@@ -73,5 +73,14 @@ class SessionManager(BaseManager):
             session.status = False
             return session.save()
 
+    def by_name(self, name: str):
+        query = self.select().where(self.model.name == name).order_by(self.model.id.desc())
+        return query.get() if query.exists() else None
+
+    def by_curator(self, curator, activeOnly=False):
+        query = self.select().where((self.model.curator == curator)
+                                   & (self.model.status if activeOnly else True))
+        return query if query.exists() else None
+
 
 sessionManager = SessionManager(Session)
