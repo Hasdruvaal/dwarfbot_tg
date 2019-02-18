@@ -5,8 +5,8 @@ services:
   image: postgres
   restart: always
   env_file: .env
-  ports:
-   - "${DB_PORT}:${DB_PORT}"
+  expose:
+   - "${DB_PORT}"
   volumes:
    - "${DATA_PATH}/pgdata:/data/pgdata"
   environment:
