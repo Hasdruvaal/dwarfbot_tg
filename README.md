@@ -1,101 +1,58 @@
-# dwarfbot tg
-## Сессии
+# TODO:
+1. Cover all interface and managers functions by unit-test
+2. Merge `info` and `my` commands in one (from private `info` should work like an `my` at the moment). Delete `my` command.
+3. Write a `help` command and show this after `auth`
+4. As a curator i want to manage players-list and session (delete players from list, set status to other player)
+5. As a player i want to skip my step without sending a save (now only curator have possibility)
+6. As a admin i want to have a instrument to manage database. I find is good idea to have a django-grappelli or smt like that. 
+7. Remove hardcode in 7-days step time. Ideally each session must have it like an option.
 
-1. Создавать сессии командой (Cделано, требуется дальнейшее тестирование)
+# About
+It's telegram bot for sucession game managment. Created by the idea of [russian df community](https://t.me/DwarfFortressRus,"DwarfFortressRus")-members. You can find telegram developers [here](https://t.me/dfbotsetup "DF Succession Bot Telegram chat").
 
-1. Изменять их имя и описание (сделано, требуется дальнейшее тестирование)
+# Set up
+## Installing:
+ 1. Clone repository
+ 2. Install docker and docker-compose
+ 3. Make `.env` file from `env.example` (look below)
+ 5. Start `docker-compose up -d`
 
-1. Сохранять для сессии список игроков (Cделано, требуется дальнейшее тестирование)
+## Env-file:
+1. Get bot token from [@BotFather](https://telegram.me/botfather)
+2. Get google-secret from [google developer console](https://console.developers.google.com/apis/credentials "Google Creditionals")
+3. Get imgur api-keys. Read more: [imgur api doc](https://apidocs.imgur.com/#authorization-and-oauth "Authorization and oauth")
+4. Create google-drive folder through web-interface and extract folder-id from url: https://drive.google.com/drive/folders/YOUR_ID
+5. Set up user/password/dbname/host/port
+6. Fill up `.env` with your data like `env.example`
 
-1. Сохранять и передавать сейвы (Cделано, требуется дальнейшее тестирование)
+# Usage
+## Users
+1. `auth` - Authorise user
 
-## Список игроков
+Note: each player or/and curator __must__ be authorised by a bot!
 
-1. Добавлять/удалять/изменять игроков, каждый может редактировать только себя (Cделано, требуется дальнейшее тестирование)
+## Session managment
+1. `create [arg]` - create session. If `[arg]` is empty it will be `Utitled`.
+2. `delete` - delete session. Your must be sure, you can't cancel or undone this operation. Available only for new-sessions without any status.
+3. `name [arg]` - (Re)name game. If `[arg]` is empty, it return session name. If not, it set `[arg]` as a name
+4. `description [arg]` - Set or show description. If `[arg]` is not empty, `[arg]` be a new description.
+5. `embark` or `start` - Set session status to a active. It means game is started by curator. Can't be undone.
+6. `abandon` or `stop` - Stop session. It means game is stoped (not deleted!) by curator. Can't be undode. You can't start a deleted session.
 
-1. Редактировать порядок можно только шафлом, шафл не доступен после начала сессии (Cделано, требуется дальнейшее тестирование)
+## Player managment
+1. `toggle` - Add or delete initiator to player-list
+2. `shuffle` - Shuffle players in the list. Only for new-sessions, need to be a curator of this session.
+3. `skip` - Skip current player step. Only for new-sessions, need to be a curator of this session.
+4. `add` - Add player to tail of the list. Need to be a curator of this session.
+5. `round [arg]` - Repeat players list. If `[arg]` is not empy, repeated part be shuffled.
 
-1. Показывать текущий список игроков отдельной командой и указывать чей шаг, когда завершится и тп инфу (Cделано, требуется дальнейшее тестирование)
+## Info
+1. `info [arg]` - Show info about current or `[arg]` session. `[arg]` can be a name of any session, or session id. You can get session id and name by `my` (look below)
+2. `my` - Show info about all your sessions
+3. `players` - Show player list of current session
 
-1. Куратор может удалять из списка игроков. Если текущий ход был у удаленного игрока, необходимо передать ход следующему (Cделано, требуется дальнейшее тестирование)
+## Game
+1. `retire` or `next` - Close you step and send save to the cloud and to the next player. Private only.
+2. `fact` - Add information about your game into the gooogle document. Can be use for images so you need to set command as a caption
 
-## Сейвы
-
-1. Игрок в разрезе сессии может загружать свой сейв, по загрузке сейва шаг игрока считается завершенным (Cделано, требуется дальнейшее тестирование)
-
-1. Следующий игрок автоматически получает сейв в ЛС, если предыдущий игрок не сдал сейв вовремя - передаётся предыдущий сейв (Cделано, требуется дальнейшее тестирование)
-
-1. Сейвы бекапятся и принимаются  в одном формате с ограничением по объему (Cделано, требуется дальнейшее тестирование)
-
-1. Сейв переименовывается согласно маске - имя сессии, идентификатор игрока, номер шага (Cделано, требуется дальнейшее тестирование)
-
-1. Все сейвы загружаются в облако (Cделано, требуется дальнейшее тестирование)
-
-## Летопись
-
-1. Во время своего хода любое сообщение текущего игрока с тегом сессии - записываем целиком в гуглодок, для удобства правки и поиска внутри чата обсуждений саксешнгейма. Пример сообщения:
-Блядская гоблота вновь осадила славный #snakepants (Cделано, требуется дальнейшее тестирование)
-
-1. Возвращаем ссылку на гуглодок по запросу и/или ссылку на скачивание документа (Cделано, требуется дальнейшее тестирование)
-
-
-## Команды
-Сессии:
-    
-    /create [arg]
-        Создаёт сессию, если [arg] не указан с именем Untitled. Доступно только ранее зарегестрированным пользователям
-
-    /delete
-        Удаляет существующую сессию, возможно только для созданных сессий, активные и завершенные игры - удалить нельзя
-
-    /name [arg]
-        Переименовывает игру, в случае отсутсвия [arg] возвращает имя текущей игры
-
-    /description [arg]+
-        Изменяет описание игры. Аналогично /name
-
-    /embark | start
-        Переводит сессию в статус активной, необходимо что бы в сессии были игроки.
-
-    /abandon | stop
-        Переводит сессию в статус завершенной
-
-Игроки:
-    
-    /toggle
-        Добавляет или удаляет игрока из сессии, команда доступна всем, +выполняет функционал команды /auth
-
-    /players
-        Возвращает список игроков
-
-    /shuffle
-        Перемешивает список игроков. Доступна только в свежесозданной сессии.
-
-    /skip
-        Доступно для модератора сессии, передаёт игру следующему игроку
-
-    /add
-        Доступно для модератора сесии, добавляет в конец списка игрока. Необходимо что бы добавляемый игрок ранее выполнил /auth а так же, что бы сообщение было ответом на сообщение добавляемого игрока. Т.е. сначала жмем "Ответить" на любое сообщение целевого игрока, и вводим в ответ /add
-
-    /round [shuffle]
-        Повторяет список игроков в конец списка.
-        Если хоть ничего не указано в [shuffle] - последовательность игроков будет повторена без изменений, любой текст в [shuffle] запустит перетасовку списка.
-
-Летопись:
-    
-    /fact
-    Добавление текста или картинки в летопись. Для картинки необходимо указать /fact в описание (caption)
-
-Прочее:
-    
-    /auth
-        Регистрирует пользователя. Приватное сообщение.
-
-    /retire | next
-        В личное сообщение. Останавливает текущий ход пользователя и ~передаёт сейв другому игроку. Приватное сообщение.
-
-    /my
-        В личное сообщение. Показывает информацию о всех сессиях где пишущий участник был игроком/куратором, список всех активных сессий, список всех сессий где игрок является текущим.
-
-    /info [arg]
-        В группу. Показывает информацию о текущей сессий если [arg] не указан. Отображает информацию о сессии по её ID или имени переданным в [arg] если таковая найдена, а так же ссылки на гугло-папку, гугло-документ и альбом с картинками на имгур.
+Note: Any step will be closed after 7-days automatically. You can't change that time, it's hardcoded.
