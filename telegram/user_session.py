@@ -115,7 +115,7 @@ def close_round(message):
 
 
 @bot.message_handler(commands=['fact'])
-@bot.message_handler(content_types=['photo'])
+@bot.message_handler(func=lambda x: x.caption and '/fact' in x.caption, content_types=['photo'])
 @authorise
 @group
 def fact(message):
@@ -125,9 +125,9 @@ def fact(message):
 
     text, img = None, None
     if message.content_type == 'text':
-        text = ' '.join(message.text.split(maxsplit=1)[1:]).strip() or None
+        text = ' '.join(message.text.split(maxsplit=1)[1:]).strip() or ''
     elif message.caption and '/fact' in message.caption:
-        text = message.caption.replace('/fact ', '') or None
+        text = message.caption.replace('/fact ', '') or ''
 
         file_info = bot.get_file(message.photo[len(message.photo)-1].file_id)
         img = images.client.upload_from_url('https://api.telegram.org/file/bot{0}/{1}'.format(tg_token,
@@ -140,7 +140,7 @@ def fact(message):
     current_session = userSessionManager.get_players(session)[-1]
     sender = userManager.get(message.from_user.id)
 
-    if sender == current_session.user:
+    if sender == current_session.user and (text or img):
         googleDocs.add_data(document_id=session.document,
                             owner=sender.get_name(),
                             text=text.strip(),

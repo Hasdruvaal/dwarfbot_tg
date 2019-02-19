@@ -16,7 +16,7 @@ services:
    POSTGRES_DB: ${DB_NAME}
   container_name: db
  
- bot:
+ dwarfbot_tg:
   build: .
   restart: always
   env_file: .env
