@@ -8,7 +8,7 @@
 7. Remove hardcode in 7-days step time. Ideally each session must have it like an option.
 
 # About
-It's telegram bot for sucession game managment. Created by the idea of [russian df community](https://t.me/DwarfFortressRus,"DwarfFortressRus")-members. You can find telegram developers [here](https://t.me/dfbotsetup "DF Succession Bot Telegram chat").
+It's telegram bot for sucession game managment. Created by the idea of [russian df community](https://t.me/DwarfFortressRus)-members. You can find telegram developers [here](https://t.me/dfbotsetup).
 
 # Set up
 ## Installing:
@@ -18,9 +18,9 @@ It's telegram bot for sucession game managment. Created by the idea of [russian 
  5. Start `docker-compose up -d`
 
 ## Env-file:
-1. Get bot token from [@BotFather](https://telegram.me/botfather)
-2. Get google-secret from [google developer console](https://console.developers.google.com/apis/credentials "Google Creditionals")
-3. Get imgur api-keys. Read more: [imgur api doc](https://apidocs.imgur.com/#authorization-and-oauth "Authorization and oauth")
+1. Get bot token from [@BotFather](https://t.me/botfather)
+2. Get google-secret from [google developer console](https://console.developers.google.com/apis/credentials)
+3. Get imgur api-keys. Read more: [imgur api doc](https://apidocs.imgur.com/#authorization-and-oauth)
 4. Create google-drive folder through web-interface and extract folder-id from url: https://drive.google.com/drive/folders/YOUR_ID
 5. Set up user/password/dbname/host/port
 6. Fill up `.env` with your data like `env.example`
