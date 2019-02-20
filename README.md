@@ -2,10 +2,11 @@
 1. Cover all interface and managers functions by unit-test
 2. Merge `info` and `my` commands in one (from private `info` should work like an `my` at the moment). Delete `my` command.
 3. Write a `help` command and show this after `auth`
-4. As a curator i want to manage players-list and session (delete players from list, set status to other player)
-5. As a player i want to skip my step without sending a save (now only curator have possibility)
-6. As a admin i want to have a instrument to manage database. I find is good idea to have a django-grappelli or smt like that. 
-7. Remove hardcode in 7-days step time. Ideally each session must have it like an option.
+4. Replace `auth` by `start`
+5. As a curator i want to manage players-list and session (delete players from list, set status to other player)
+6. As a player i want to skip my step without sending a save (now only curator have possibility)
+7. As a admin i want to have a instrument to manage database. I find is good idea to have a django-grappelli or smt like that. 
+8. Remove hardcode in 7-days step time. Ideally each session must have it like an option.
 
 # About
 It's telegram bot for sucession game managment. Created by the idea of [russian df community](https://t.me/DwarfFortressRus)-members. You can find telegram developers [here](https://t.me/dfbotsetup).
