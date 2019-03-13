@@ -9,3 +9,4 @@ oauth2client==3.0.0
 imgurpython==1.1.7
 psycopg2-binary==2.7.7
 envparse==0.2.0
+aiohttp==3.5.4

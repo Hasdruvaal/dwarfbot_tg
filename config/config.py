@@ -5,9 +5,13 @@ from envparse import env
 
 base_dir = os.path.dirname(os.path.dirname(__file__))
 env.read_envfile(os.path.join(base_dir, '.env'))
+
+# Debug
+debug_mode = env('DEBUG_MODE')
+
 # Telegram
 tg_proxy = {
-#    env('PROXY_SCHEMA'): env('PROXY_CONN')
+    env('PROXY_SCHEMA'): env('PROXY_CONN')
 }
 # Keep it empty if you not need it
 tg_token = env('TG_TOKEN')
@@ -35,9 +39,18 @@ scopes = [  # Scopes from goggle-example
 secret_file = 'config/google_secret.json'
 # you can get it in google-api developer console:
 # https://console.developers.google.com/apis/credentials/consent
-root_folder = env('ROOT_FOLDER') or None
+root_folder = env('ROOT_FOLDER')
 
 # ImGur
 imgur_key = env('IMGUR_KEY')
 imgur_secret = env('IMGUR_SECRET')
 
+# WebHook
+webhook_host = env('WEBHOOK_HOST')
+webhook_port = env('WEBHOOK_PORT')
+webhook_listen = env('WEBHOOK_LISTEN') # In some VPS you may need to put here the IP addr
+webhook_ssl_cert = env('WEBHOOK_SSL_CERT') or 'cert/webhook_cert.pem'  # Path to the ssl certificate
+webhook_ssl_priv = env('WEBHOOK_SSL_PRIV') or 'cert/webhook_pkey.pem'  # Path to the ssl private key
+webhook_secret = tg_token
+webhook_url_base = 'https://{0}:{1}'.format(webhook_host, webhook_port)
+webhook_url_path = '/%s/' % (webhook_secret)
