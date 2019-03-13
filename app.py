@@ -1,6 +1,8 @@
+from aiohttp import web
+import time
+
 from utils.logger import init_logging
 from logging import info
-import time
 
 from db.create_db import init_db
 
@@ -20,8 +22,8 @@ if __name__ == '__main__':
                              certificate=open(config.webhook_ssl_cert, 'r'))
 
     info('Starting the webhook')
-    webhook.web.run_app(webhook.hook,
-                        host=config.webhook_listen,
-                        port=config.webhook_port,
-                        ssl_context=webhook.ssl_context,
-                       )
+    web.run_app(webhook.hook,
+                host=config.webhook_listen,
+                port=config.webhook_port,
+                ssl_context=webhook.ssl_context,
+                )

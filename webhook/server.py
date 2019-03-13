@@ -6,9 +6,6 @@ import config
 import ssl
 
 
-hook = web.Application()
-
-
 async def handle(request):
     if request.match_info.get('token') == bot.token:
         request_body_dict = await request.json()
@@ -18,7 +15,7 @@ async def handle(request):
     else:
         return web.Response(status=403)
 
-
+hook = web.Application()
 hook.router.add_post('/%s/' % (config.tg_token), handle)
 ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
 ssl_context.load_cert_chain(config.webhook_ssl_cert, config.webhook_ssl_priv)
