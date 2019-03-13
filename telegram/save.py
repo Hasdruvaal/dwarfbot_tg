@@ -52,7 +52,7 @@ def process_get_file(message):
             raise Exception('Cant download save-game')
     except Exception as e:
         bot.reply_to(message, 'Something went wrong!')
-        return None
+        return
 
     file_name = user_session.game_name()
     with open(file_name, 'wb') as f:

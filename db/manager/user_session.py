@@ -21,7 +21,6 @@ class UserSessionManager(BaseManager):
             return self.create(session=session_id, user=user_id, position=position + 1)
         else:
             query.get().delete_instance()
-            return None
 
     def active_player(self, session_id):
         query = self.select().where((self.model.session == session_id)
@@ -97,8 +96,6 @@ class UserSessionManager(BaseManager):
             user_session.game = file_id
             user_session.save()
             return user_session.game
-        else:
-            return None
 
     def write_from_prev(self, user_session_id):
         session_id = self.get(user_session_id)
