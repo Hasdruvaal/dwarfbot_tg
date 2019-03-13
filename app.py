@@ -13,7 +13,7 @@ import webhook
 
 if __name__ == '__main__':
     init_logging()
-    #init_db()
+    init_db()
 
     info('Starting the bot')
     telegram.bot.remove_webhook()
@@ -23,7 +23,7 @@ if __name__ == '__main__':
 
     info('Starting the webhook')
     web.run_app(webhook.hook,
-                host=config.webhook_listen,
+                host=config.webhook_host,
                 port=config.webhook_port,
                 ssl_context=webhook.ssl_context,
                 )
