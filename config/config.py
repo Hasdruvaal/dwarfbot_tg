@@ -11,7 +11,7 @@ debug_mode = env('DEBUG_MODE')
 
 # Telegram
 tg_proxy = {
-    env('PROXY_SCHEMA') щк: env('PROXY_CONN')
+    env('PROXY_SCHEMA'): env('PROXY_CONN')
 }
 # Keep it empty if you not need it
 tg_token = env('TG_TOKEN')

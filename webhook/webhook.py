@@ -1,52 +1,24 @@
-import tornado.httpserver
-import tornado.ioloop
-import tornado.options
-import tornado.web
-
 from telebot import types
+from aiohttp import web
+from telegram import bot
 
 import config
-from telegram import bot
-from logging import info
+import ssl
 
 
-class webhook_serv(tornado.web.RequestHandler):
-    def get(self):
-        self.write("What are you doing here?")
-        self.finish()
+hook = web.Application()
 
-    def post(self):
-        if 'Content-Length' in self.request.headers and \
-            'Content-Type' in self.request.headers and \
-            self.request.headers['Content-Type'] == 'application/json':
 
-            json_data = self.request.body.decode("utf-8")
-            update = types.Update.de_json(json_data)
-            bot.process_new_updates([update])
-            self.write('')
-            self.finish()
-        else:
-            self.write('GTFO')
-            self.finish()
+async def handle(request):
+    if request.match_info.get('token') == bot.token:
+        request_body_dict = await request.json()
+        update = types.Update.de_json(request_body_dict)
+        bot.process_new_updates([update])
+        return web.Response()
+    else:
+        return web.Response(status=403)
 
-tornado.options.define('port', default=config.webhook_port, help='run on the given port', type=int)
-is_closing = False
 
-def signal_handler(signum, frame):
-    global is_closing
-    info('Tornado exiting...')
-    is_closing = True
-
-def try_exit():
-    global is_closing
-    if is_closing:
-        tornado.ioloop.IOLoop.instance().stop()
-        info('Tornado exit success!')
-
-tornado.options.options.logging = None
-tornado.options.parse_command_line()
-signal.signal(signal.SIGINT, signal_handler)
-
-application = tornado.web.Application([
-    (r'/' + config.webhook_secret, webhook_serv)
-])
+hook.router.add_post('/%s/' % (config.tg_token), handle)
+ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+ssl_context.load_cert_chain(config.webhook_ssl_cert, config.webhook_ssl_priv)
