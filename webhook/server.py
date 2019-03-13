@@ -1,3 +1,5 @@
+from logging import info
+
 from telebot import types
 from aiohttp import web
 from telegram import bot
@@ -7,7 +9,7 @@ import ssl
 
 
 async def handle(request):
-    if request.match_info.get('token') == bot.token:
+    if request.body_exists:
         request_body_dict = await request.json()
         update = types.Update.de_json(request_body_dict)
         bot.process_new_updates([update])

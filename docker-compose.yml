@@ -16,14 +16,14 @@ services:
    POSTGRES_DB: ${DB_NAME}
   container_name: db
 
- dwarfbot_tg:
+ bot:
   build: .
   restart: always
   env_file: .env
   volumes:
    - "${DATA_PATH}/logs:/code/logs"
    - "${DATA_PATH}/cert:/code/cert"
-  expose:
+  ports:
    - "${WEBHOOK_PORT}:${WEBHOOK_PORT}"
   depends_on:
    - db
