@@ -7,7 +7,7 @@ base_dir = os.path.dirname(os.path.dirname(__file__))
 env.read_envfile(os.path.join(base_dir, '.env'))
 
 # Debug
-debug_mode = env('DEBUG_MODE')
+dev_mode = env('DEV_MODE')
 
 # Telegram
 tg_proxy = {
