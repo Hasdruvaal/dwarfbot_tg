@@ -2,7 +2,7 @@ import datetime
 import random
 
 from db.manager.base import BaseManager
-from db.manager.session import sessionManager
+from db.manager.session import session_manager
 from db.models import UserSession
 
 
@@ -46,7 +46,7 @@ class UserSessionManager(BaseManager):
         return {p.position: p.user for p in players}, current_player
 
     def shuffle_players(self, session):
-        session_status = sessionManager.get(session).status
+        session_status = session_manager.get(session).status
         if session_status is None:
             query = self.by_session(session)
             if query.exists():
@@ -117,4 +117,4 @@ class UserSessionManager(BaseManager):
         return query if query.exists() else None
 
 
-userSessionManager = UserSessionManager(UserSession)
+user_session_manager = UserSessionManager(UserSession)

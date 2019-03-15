@@ -12,9 +12,9 @@ class Cache:
 
     def save_to_file(self):
         with open(self.file_name, 'wb+') as f:
-            str = pickle.dumps(self.data)
+            s = pickle.dumps(self.data)
             f.seek(0)
-            f.write(str)
+            f.write(s)
             f.truncate()
             f.flush()
         debug('%s updates flushed to file' % (self.observable.__repr__()))

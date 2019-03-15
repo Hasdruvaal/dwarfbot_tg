@@ -1,5 +1,5 @@
 from db.manager.base import BaseManager
-from db.manager.user import userManager
+from db.manager.user import user_manager
 from db.models import Session
 from db.models import UserSession
 
@@ -9,7 +9,7 @@ class SessionManager(BaseManager):
         query = self.select().where((self.model.chat == chat_id)
                                     & (self.model.status.is_null() | self.model.status))
         if not query.exists():
-            return self.create(name=name, curator=userManager.get(curator_id), chat=chat_id)
+            return self.create(name=name, curator=user_manager.get(curator_id), chat=chat_id)
 
     def delete_session(self, curator_id, chat_id):
         session = self.active_chat_session(chat_id)
@@ -30,7 +30,7 @@ class SessionManager(BaseManager):
     def rename(self, curator_id, chat_id, name=''):
         session = self.active_chat_session(chat_id)
         if session:
-            if name and session.curator == userManager.get(curator_id):
+            if name and session.curator == user_manager.get(curator_id):
                 session.name = name
                 session.save()
             return session.name
@@ -38,13 +38,13 @@ class SessionManager(BaseManager):
     def description(self, curator_id, chat_id, description=''):
         session = self.active_chat_session(chat_id)
         if session:
-            if description and session.curator == userManager.get(curator_id):
+            if description and session.curator == user_manager.get(curator_id):
                 session.description = description
                 session.save()
             return session.description
 
     def get_player_sessions(self, curator_id):
-        sessions = self.select().where(self.model.curator == userManager.get(curator_id))
+        sessions = self.select().where(self.model.curator == user_manager.get(curator_id))
         return [session.id for session in sessions]
 
     def start(self, session_id):
@@ -83,4 +83,4 @@ class SessionManager(BaseManager):
         return query if query.exists() else None
 
 
-sessionManager = SessionManager(Session)
+session_manager = SessionManager(Session)
