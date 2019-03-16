@@ -5,7 +5,7 @@ from db.models import BaseModel
 from db.models.user import User
 
 import images
-from cloud import googleDrive
+from cloud import google_drive
 
 
 class Session(BaseModel):
@@ -32,6 +32,6 @@ class Session(BaseModel):
         return self.save()
 
     def init_cloud(self):
-        self.folder = googleDrive.create_folder(self.name)
-        self.document = googleDrive.create_doc(self.name, self.folder)
+        self.folder = google_drive.create_folder(self.name)
+        self.document = google_drive.create_doc(self.name, self.folder)
         return self.save()

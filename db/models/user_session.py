@@ -15,4 +15,4 @@ class UserSession(BaseModel):
     date_to = DateField(default=datetime.datetime.now() + datetime.timedelta(days=7))
 
     def game_name(self):
-        return '{}_{}_{}.zip'.format(self.position, self.session.name, self.user.get_name())
+        return f'{self.position}_{self.session.name}_{self.user.get_name()}.zip'

@@ -2,7 +2,7 @@ import datetime
 import random
 
 from db.manager.base import BaseManager
-from db.manager.session import sessionManager
+from db.manager.session import session_manager
 from db.models import UserSession
 
 
@@ -21,7 +21,6 @@ class UserSessionManager(BaseManager):
             return self.create(session=session_id, user=user_id, position=position + 1)
         else:
             query.get().delete_instance()
-            return None
 
     def active_player(self, session_id):
         query = self.select().where((self.model.session == session_id)
@@ -47,7 +46,7 @@ class UserSessionManager(BaseManager):
         return {p.position: p.user for p in players}, current_player
 
     def shuffle_players(self, session):
-        session_status = sessionManager.get(session).status
+        session_status = session_manager.get(session).status
         if session_status is None:
             query = self.by_session(session)
             if query.exists():
@@ -97,8 +96,6 @@ class UserSessionManager(BaseManager):
             user_session.game = file_id
             user_session.save()
             return user_session.game
-        else:
-            return None
 
     def write_from_prev(self, user_session_id):
         session_id = self.get(user_session_id)
@@ -120,4 +117,4 @@ class UserSessionManager(BaseManager):
         return query if query.exists() else None
 
 
-userSessionManager = UserSessionManager(UserSession)
+user_session_manager = UserSessionManager(UserSession)

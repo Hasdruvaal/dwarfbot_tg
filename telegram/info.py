@@ -1,33 +1,32 @@
 from telegram import bot
 from telegram.decorators import *
-from db.manager import userSessionManager, sessionManager, userManager
+from db.manager import user_session_manager, session_manager, user_manager
 
 
 def get_session(arg):
-    ret = sessionManager.by_name(arg) or sessionManager.get(arg)
-    return ret or None
+    session = session_manager.by_name(arg) or session_manager.get(arg)
+    return session or None
 
 
 def info_message(session):
-    players, cur = userSessionManager.get_players(session)
+    players, cur = user_session_manager.get_players(session)
     if players:
-        players = '\n'.join(str(k) + ': ' + v.get_name() for k, v in players.items())
-        players = 'Players list:\n' + players
+        players = '\n'.join(f'{k}: {v.get_name()}' for k, v in players.items())
+        players = f'Players list:\n{players}'
         if cur:
-            players += '\nCurrent player: @'+cur.user.get_name() + \
-                          '\nCurrent step: '+str(cur.position)
+            players += f'\nCurrent player: {cur.user.get_name()}\nCurrent step: {cur.position}'
 
-    text = 'Session ID #{}\n'.format(session.id)
-    text += 'Session name: {}\n'.format(session.name)
+    text = f'Session ID #{session.id}\n'
+    text += f'Session name: {session.name}\n'
 
     if session.description:
-        text += 'Session description: {}\n'.format(session.description or 'No description')
+        text += f'Session description: {session.description}\n'
     if session.folder:
-        text += 'Google folder: https://drive.google.com/drive/folders/{}\n'.format(session.folder)
+        text += f'Google folder: https://drive.google.com/drive/folders/{session.folder}\n'
     if session.document:
-        text += 'Google doc: https://docs.google.com/document/d/{}\n'.format(session.document or 'No doc')
+        text += f'Google doc: https://docs.google.com/document/d/{session.document}\n'
     if session.album:
-        text += 'ImGur album: https://imgur.com/a/{}\n\n'.format(session.album or 'No album')
+        text += f'ImGur album: https://imgur.com/a/{session.album}\n\n'
     if players:
         text += players
 
@@ -39,7 +38,7 @@ def info_message(session):
 @logging
 def info(message):
     arg = ' '.join(message.text.split(maxsplit=1)[1:]).strip()
-    session = get_session(arg) if arg else sessionManager.active_chat_session(message.chat.id)
+    session = get_session(arg) if arg else session_manager.active_chat_session(message.chat.id)
 
     if not session:
         bot.reply_to(message, 'There is nothing to show')
@@ -48,34 +47,34 @@ def info(message):
 
 
 @bot.message_handler(commands=['my'])
-@authorise
+@authorize
 @private
 @logging
 def player_info(message):
-    from_user = userManager.get(message.from_user.id)
-    curator_session_query = sessionManager.by_curator(from_user)
-    active_session_query = sessionManager.by_curator(from_user, activeOnly=True)
-    player_game_query = userSessionManager.by_player(from_user)
-    active_game_query = userSessionManager.by_player(from_user, activeOnly=True)
+    from_user = user_manager.get(message.from_user.id)
+    curator_session_query = session_manager.by_curator(from_user)
+    active_session_query = session_manager.by_curator(from_user, activeOnly=True)
+    player_game_query = user_session_manager.by_player(from_user)
+    active_game_query = user_session_manager.by_player(from_user, activeOnly=True)
     text = ''
 
     if curator_session_query:
-        curator = '\n'.join([str(session)+': '+session.name for session in curator_session_query])
-        text += '\n\nYour as curator in session(s) [id: name]:\n{}'.format(curator)
+        curator = '\n'.join([f'{session}: {session.name}' for session in curator_session_query])
+        text += f'\n\nYour as curator in session(s) [id: name]:\n{curator}'
     if active_session_query:
-        active_curator = '\n'.join([str(session)+': '+session.name for session in active_session_query])
-        text += '\n\nYour as curator in active session(s) [id: name]:\n{}'.format(active_curator)
+        active_curator = '\n'.join([f'{session}: {session.name}' for session in active_session_query])
+        text += f'\n\nYour as curator in active session(s) [id: name]:\n{active_curator}'.format()
     if player_game_query:
-        player = '\n'.join([str(session.session.id)+': '+session.session.name for session in player_game_query])
-        text += '\n\nSessions in which you participate [id: name]:\n{}'.format(player)
+        player = '\n'.join([f'{session}: {session.name}' for session in player_game_query])
+        text += f'\n\nSessions in which you participate [id: name]:\n{player}'
     if active_game_query:
-        active_player = '\n'.join([str(session.session.id)+': '+session.session.name for session in active_game_query])
-        text += '\n\nYour active games [id: name]:\n{}'.format(active_player)
+        active_player = '\n'.join([f'{session}: {session.name}' for session in active_game_query])
+        text += f'\n\nYour active games [id: name]:\n{active_player}'
 
     if not text:
         bot.reply_to(message, 'There is nothing to show')
     else:
-        text = 'Total info:'+text
+        text = f'Total info: {text}'
         bot.reply_to(message, text)
 
 
@@ -83,13 +82,12 @@ def player_info(message):
 @group
 @logging
 def show_players(message):
-    session = sessionManager.active_chat_session(message.chat.id)
-    players, cur = userSessionManager.get_players(session)
-    reply_text = '\n'.join(str(k) + ': ' + v.get_name() for k, v in players.items())
-    reply_text = 'Players list:\n' + reply_text
+    session = session_manager.active_chat_session(message.chat.id)
+    players, cur = user_session_manager.get_players(session)
+    reply_text = '\n'.join(f'{k}: {v.get_name()}' for k, v in players.items())
+    reply_text = f'Players list:\n{reply_text}'
     if cur:
-        reply_text += '\nCurrent player: @'+cur.user.get_name() + \
-                      '\nCurrent step: '+str(cur.position)
+        reply_text += f'\nCurrent player: {cur.user.get_name()}\nCurrent step: {cur.position}'
     if players:
         bot.reply_to(message, reply_text)
     else:

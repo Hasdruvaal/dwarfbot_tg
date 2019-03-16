@@ -23,7 +23,7 @@ next_check = datetime.datetime.now()
 
 @bot.message_handler(func=lambda x: datetime.datetime.now() > next_check)
 def skip_sleepers(message):
-    sleepers = userSessionManager.sleepers()
+    sleepers = user_session_manager.sleepers()
     if sleepers:
         next_check = datetime.datetime.now() + datetime.timedelta(hours=5)
         info('Sleepers gonna sleep!')
