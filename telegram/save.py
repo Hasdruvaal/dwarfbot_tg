@@ -12,7 +12,7 @@ from config import tg_token, tg_proxy
 from cloud import google_drive
 
 
-@bot.message_handler(commands=['retire','save'])
+@bot.message_handler(commands=['retire', 'save'])
 @authorize
 @private
 @logging
@@ -20,7 +20,7 @@ def close_step(message):
     sessions = user_session_manager.all_player_active(message.from_user.id)
     if sessions:
         reply_text = '\n'.join([f'{k}: {v}' for k, v in sessions.items()])
-        reply_text = 'Please chose one\n' + reply_text
+        reply_text = f'Please chose one\n {reply_text}'
         session_select = types.ReplyKeyboardMarkup(one_time_keyboard=True, row_width=len(sessions))
         session_select.add(*[str(k) for k in sessions.keys()])
         session_select.add('Cancel')

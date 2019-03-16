@@ -24,7 +24,8 @@ class Cache:
             self.data = pickle.load(f)
         debug('%s cache %d item loaded' % (self.observable.__repr__(), self.data.__len__()))
 
-    def hash_key(self, *args, **kwargs):
+    @staticmethod
+    def hash_key(*args, **kwargs):
         args_repr = list(map(lambda x: x.__dict__.__repr__(), args))
         kwargs_repr = list(str(x) for x in kwargs.values())
         return '_'.join(args_repr) + '-' + '_'.join(kwargs_repr)

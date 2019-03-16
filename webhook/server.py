@@ -1,5 +1,3 @@
-from logging import info
-
 from telebot import types
 from aiohttp import web
 from telegram import bot
@@ -18,6 +16,6 @@ async def handle(request):
         return web.Response(status=403)
 
 hook = web.Application()
-hook.router.add_post('/%s/' % (config.tg_token), handle)
+hook.router.add_post(f'/{config.tg_token}/', handle)
 ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
 ssl_context.load_cert_chain(config.webhook_ssl_cert, config.webhook_ssl_priv)

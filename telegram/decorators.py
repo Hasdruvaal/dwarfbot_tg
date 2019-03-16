@@ -29,10 +29,10 @@ def authorize(f):
     @wraps(f)
     def decorator(message):
         if user_manager.get(message.from_user.id):
-            user_manager.update_user(id=message.from_user.id,
-                                    user_name=message.from_user.username,
-                                    first_name=message.from_user.first_name,
-                                    last_name=message.from_user.last_name)
+            user_manager.update_user(pkey=message.from_user.id,
+                                     user_name=message.from_user.username,
+                                     first_name=message.from_user.first_name,
+                                     last_name=message.from_user.last_name)
             f(message)
         else:
             bot.reply_to(message, 'First send `/auth` to the bot in private')

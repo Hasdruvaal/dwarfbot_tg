@@ -1,7 +1,7 @@
 import datetime
 
 from peewee import ForeignKeyField, IntegerField, BooleanField, TextField, DateField
-from db.models import BaseModel
+from db import BaseModel
 from db.models.user import User
 from db.models.session import Session
 

@@ -1,5 +1,4 @@
 import os
-import sys
 
 from envparse import env
 
@@ -48,9 +47,9 @@ imgur_secret = env('IMGUR_SECRET')
 # WebHook
 webhook_host = env('WEBHOOK_HOST')
 webhook_port = env('WEBHOOK_PORT')
-webhook_listen = env('WEBHOOK_LISTEN') # In some VPS you may need to put here the IP addr
+webhook_listen = env('WEBHOOK_LISTEN')
 webhook_ssl_cert = env('WEBHOOK_SSL_CERT') or 'cert/webhook_cert.pem'  # Path to the ssl certificate
 webhook_ssl_priv = env('WEBHOOK_SSL_PRIV') or 'cert/webhook_pkey.pem'  # Path to the ssl private key
 webhook_secret = tg_token
-webhook_url_base = 'https://{0}:{1}'.format(webhook_host, webhook_port)
-webhook_url_path = '/%s/' % (webhook_secret)
+webhook_url_base = f'https://webhook_host:webhook_port'
+webhook_url_path = f'/{webhook_secret}/'

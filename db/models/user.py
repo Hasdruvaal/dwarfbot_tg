@@ -1,5 +1,5 @@
 from db import BaseModel
-from peewee import IntegerField, TextField
+from peewee import TextField
 
 
 class User(BaseModel):

@@ -63,7 +63,7 @@ def player_info(message):
         text += f'\n\nYour as curator in session(s) [id: name]:\n{curator}'
     if active_session_query:
         active_curator = '\n'.join([f'{session}: {session.name}' for session in active_session_query])
-        text += f'\n\nYour as curator in active session(s) [id: name]:\n{active_curator}'.format()
+        text += f'\n\nYour as curator in active session(s) [id: name]:\n{active_curator}'
     if player_game_query:
         player = '\n'.join([f'{session}: {session.name}' for session in player_game_query])
         text += f'\n\nSessions in which you participate [id: name]:\n{player}'

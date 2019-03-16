@@ -69,7 +69,7 @@ class SessionManager(BaseManager):
             player_session.status = False
             player_session.save()
         session = self.get(session_id)
-        if session.status == True:
+        if session.status is True:
             session.status = False
             return session.save()
 
@@ -77,9 +77,9 @@ class SessionManager(BaseManager):
         query = self.select().where(self.model.name == name).order_by(self.model.id.desc())
         return query.get() if query.exists() else None
 
-    def by_curator(self, curator, activeOnly=False):
+    def by_curator(self, curator, active_only=False):
         query = self.select().where((self.model.curator == curator)
-                                   & (self.model.status if activeOnly else True))
+                                    & (self.model.status if active_only else True))
         return query if query.exists() else None
 
 

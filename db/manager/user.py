@@ -7,13 +7,14 @@ class UserManager(BaseManager):
         if not self.get(kwargs.get('id')):
             return self.create(**kwargs)
 
-    def update_user(self, id, user_name, first_name, last_name):
-        user = self.get(id)
+    def update_user(self, pkey, user_name, first_name, last_name):
+        user = self.get(pkey)
         if user:
             user.user_name = user_name
             user.first_name = first_name
             user.last_name = last_name
             user.save()
         return user
+
 
 user_manager = UserManager(User)

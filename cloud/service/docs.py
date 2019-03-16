@@ -3,6 +3,7 @@ from datetime import datetime
 from cloud.service import BaseService
 from logging import error
 
+
 class DocsService(BaseService):
     def __init__(self, *args, **kwargs):
         self.service_name = 'docs'
@@ -17,7 +18,8 @@ class DocsService(BaseService):
         body = {'requests': batch}
         return self.service.documents().batchUpdate(documentId=document_id, body=body).execute()
 
-    def add_text(self, index, text):
+    @staticmethod
+    def add_text(index, text):
         return {'insertText': {
                         'location': {
                             'index': index,
@@ -25,15 +27,16 @@ class DocsService(BaseService):
                         'text': text
                 }}
 
-    def add_image(self, index, image):
+    @staticmethod
+    def add_image(index, image):
         return {'insertInlineImage': {
-                    'location': { 'index': index },
+                    'location': {'index': index},
                     'uri': image,
                     'objectSize': {'height': {'magnitude': 480,
                                               'unit': 'PT'},
-                                    'width': {'magnitude': 480,
-                                              'unit': 'PT'}
-                                  }
+                                   'width': {'magnitude': 480,
+                                             'unit': 'PT'}
+                                   }
                     }
                 }
 
@@ -52,6 +55,6 @@ class DocsService(BaseService):
         if image:
             batch.append(self.add_text(index, '\n'))
             batch.append(self.add_image(index, image))
-        text_in = '\n\n'+datetime.now().strftime('%d-%m-%Y %H:%M')+' '+owner+':\n'
+        text_in = '\n\n {0} {1}:\n'.format(datetime.now().strftime('%d-%m-%Y %H:%M'), owner)
         batch.append(self.add_text(index, text_in))
         return self.batch_update(document_id, batch)

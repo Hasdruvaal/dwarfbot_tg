@@ -6,7 +6,7 @@ from utils.cache import cached
 
 
 class CloudSession:
-    def __init__(self, auth_data, secret_file='google_credentials.json'):
+    def __init__(self, auth_data):
         self.creds = None
         self.auth_data = auth_data
         self.prepare_session()

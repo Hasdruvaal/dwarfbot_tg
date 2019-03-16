@@ -1,7 +1,7 @@
 import re
 from peewee import AutoField, TextField, ForeignKeyField, BooleanField
 
-from db.models import BaseModel
+from db import BaseModel
 from db.models.user import User
 
 import images
@@ -20,13 +20,14 @@ class Session(BaseModel):
     album = TextField(null=True)
 
     def hashtag(self):
-        hashtag = self.name.replace(' ', '_')
+        hashtag = f'{self.name}'.replace(' ', '_')
         regex = re.compile('[^a-z_A-Z]')
-        return '#'+regex.sub('', hashtag)
+        hashtag = regex.sub('', hashtag)
+        return f'#{hashtag}'
 
     def create_album(self):
-        params = { 'title': self.name,
-                   'description': self.description }
+        params = {'title': self.name,
+                  'description': self.description}
         album = images.client.create_album(params)
         self.album = album.get('id')
         return self.save()

@@ -17,9 +17,9 @@ def toggle_player(message):
         return
     session = session_manager.active_chat_session(message.chat.id)
     user_manager.add_user(id=message.from_user.id,
-                         username=message.from_user.username,
-                         first_name=message.from_user.first_name,
-                         last_name=message.from_user.last_name)
+                          username=message.from_user.username,
+                          first_name=message.from_user.first_name,
+                          last_name=message.from_user.last_name)
     if session and session.status is None:
         if user_session_manager.toggle_player(session, message.from_user.id):
             bot.reply_to(message, 'You were added to the session game')
@@ -88,8 +88,8 @@ def add_player(message):
                 bot.reply_to(message, 'Player must do /auth before adding!')
                 return
             if user_session_manager.toggle_player(user_id=to_add,
-                                                session_id=session,
-                                                force_add=True):
+                                                  session_id=session,
+                                                  force_add=True):
                 bot.reply_to(message, 'Player was added!')
             else:
                 bot.reply_to(message, 'Something went wrong')
@@ -121,7 +121,8 @@ def close_round(message):
 @group
 def fact(message):
     session = session_manager.active_chat_session(message.chat.id)
-    if not session:
+    current_session = user_session_manager.get_players(session)[-1]
+    if not session or not current_session:
         return
 
     text, img = None, None
@@ -138,12 +139,11 @@ def fact(message):
     else:
         return
 
-    current_session = user_session_manager.get_players(session)[-1]
     sender = user_manager.get(message.from_user.id)
 
     if sender == current_session.user and (text or img):
         google_docs.add_data(document_id=session.document,
-                            owner=sender.get_name(),
-                            text=text.strip(),
-                            image=img)
+                             owner=sender.get_name(),
+                             text=text.strip(),
+                             image=img)
         bot.reply_to(message, session.hashtag())

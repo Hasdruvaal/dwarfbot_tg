@@ -11,7 +11,6 @@ class ImageSession(ImgurClient):
         }
         return self.create_album(params)
 
-
     @staticmethod
     @cached
     def imgur(creds: ImagesAuthData):

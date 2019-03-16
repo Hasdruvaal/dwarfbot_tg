@@ -56,12 +56,11 @@ defaultConfig = {
 }
 
 
-def init_logging(configFilePath='config/logging.json'):
-    path = configFilePath
-    if os.path.exists(configFilePath):
-        with open(path, 'rt') as configFile:
-            config = json.load(configFile)
+def init_logging(config_file_path='config/logging.json'):
+    path = config_file_path
+    if os.path.exists(config_file_path):
+        with open(path, 'rt') as config_file:
+            config = json.load(config_file)
             dictConfig(config)
     else:
         dictConfig(defaultConfig)
-
